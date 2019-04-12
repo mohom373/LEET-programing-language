@@ -1,4 +1,5 @@
 require './debug_fix_rdparse.rb'
+require './leet_node.rb'
 
 class Leet
 
@@ -22,7 +23,6 @@ class Leet
             end
 
             rule :statement do 
-                match(:expr)
                 # match(:assignment)
                 # match(:input)
                 # match(:output)
@@ -32,6 +32,7 @@ class Leet
                 # match(:break)
                 # match(:function_definition)
                 # match(:function_call)
+                match(:expr)
             end
 
 =begin
@@ -44,8 +45,21 @@ class Leet
             end
 =end
             rule :expr do 
-                match(:integer, "+", :integer) {|a,_,b| AddNode.new(a,b)}
+                match(:a_expr)
+                match(:m_expr)
             end
+
+            rule :a_expr do
+                match(:integer, "+", :integer) {|a,_,b| AddNode.new(a,b)}
+                #match(:integer, "-", :integer) {|a,_,b| MinusNode.new(a,b)}
+                #match(:m_expr, "+", :integer){|a,_,b| AddNode.new(a,b)}
+            end
+=begin
+            rule :m_expr do 
+                match(:expr, "*", :integer) { |a,_,b| MultiNode.new(a,b) }
+            end
+=end
+
 
             rule :integer do
                 match(Integer)
@@ -60,26 +74,6 @@ class Leet
 
 end
 
-class StmtList
-    def initialize stmt_list, stmt
-        @stmt_list = stmt_list
-        @stmt = stmt
-    end
-    def eval
-        @stmt.eval
-        @stmt_list.eval unless @stmt_list.nil?
-    end
-end
-
-class AddNode
-    def initialize a,b
-        @a = a
-        @b = b
-    end
-    def eval
-        puts @a + @b
-        @a + @b
-    end
-end
-
 Leet.new.run "1 + 2"
+
+#Leet.new.run "5 - 3"
