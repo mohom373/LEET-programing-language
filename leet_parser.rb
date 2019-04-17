@@ -25,7 +25,7 @@ class Leet
             end
 
             rule :statement do 
-                match(:assign)  
+                  
                 # match(:input)
                 # match(:output)
                 # match(:condition)
@@ -35,22 +35,86 @@ class Leet
                 # match(:function_definition)
                 # match(:function_call)
                 #match(:print_stmt)  
-                match(:expr)
+				#match(:expr)
+				
+				#match(:assign)
+				match(:expr) 
             end
 
+
+		
 =begin
-            rule :or_expr do
-                match(:expr, "+", :and_expr) { |a,_,b| AddNode.new(a,b) }
-            end
-
-            rule :or_expr do
-                match(:and_expr, "+", :not_expr) { |a,_,b| AddNode.new(a,b) }
+            rule :assign do
+                match(:var, '=', :expr){|var, _, expr|@@variables[var]= expr}
             end
 =end
-            rule :assign do
-                match(:var, '=', :expr){|var, _, expr|@@variables[var]= expr} 
-            end
+			rule :expr do 
+				match(:bool_expr)
+			end
 
+			rule :bool_expr do 
+				match(:bool_expr, 'or', :bool_term)
+				match(:bool_term)
+			end
+
+			rule :bool_term do 
+				match(:bool_term, 'and', :bool_factor)
+				match(:bool_factor)
+			end
+
+			rule :bool_factor do
+				#match('true'){true}
+                #match('false'){false}
+				#match(:var)
+				match(:comparison)
+			end
+
+
+			rule :comparison do
+				match(:comparison, :comp_op, :arithmetic)
+				match(:arithmetic)
+			end
+
+			rule :comp_op do
+				match('<')
+				match('>')
+				match('>=')
+				match('<=')
+				match('==')
+				match('!=')
+			end
+
+			rule :arithmetic do
+				match(:arithmetic, :add_op, :term) {|a,op,b| AddNode.new(a,op,b)}
+				match(:term)
+			end
+
+			rule :add_op do
+				match('+')
+				match('-')
+			end
+
+			rule :term do
+				match(:term, :mult_op, :factor) {|a,op,b| MultiNode.new(a,op,b)}
+				match(:factor)
+			end
+
+			rule :mult_op do
+				match('*')
+				match('/')
+			end
+			rule :factor do
+				#match(:var)
+				match(:numbers)
+			end
+
+
+			rule :numbers do
+				match(Integer)
+			end
+
+
+=begin
             rule :expr do
                 match(:expr, 'or', :expr) {|exp1, _,exp2| exp1 || exp2}
                 match(:expr, 'and', :expr) {|exp1, _, exp2| exp1 && exp2}
@@ -68,12 +132,6 @@ class Leet
                 #match(String)
                 match(/[a-zA-Z]+/) {|var| @@variables.include?(var) ?@@variables[var] : var}
             end
-    
-=begin
-            rule :print do
-                match('pr1n7', '(', :expr, ')') {|_, _,print, _| 
-                Print_node.new(print) }
-            end
 =end
 
 =begin
@@ -84,20 +142,18 @@ class Leet
 
             rule :a_expr do
                 match(:integer, "+", :integer) {|a,_,b| AddNode.new(a,b)}
-                #match(:integer, "-", :integer) {|a,_,b| MinusNode.new(a,b)}
-                #match(:m_expr, "+", :integer){|a,_,b| AddNode.new(a,b)}
             end
-
+=end
+=begin
             rule :m_expr do 
                 match(:expr, "*", :integer) { |a,_,b| MultiNode.new(a,b) }
             end
 =end
 
-=begin
-            rule :integer do
-                match(Integer)
-            end
 
+		end
+	end
+=begin
             rule :literal do
                 match('<1n7>') 
                 match('<fl047>')
@@ -105,26 +161,75 @@ class Leet
                 match('b00l')
                 match('<l157>')
             end
-
 =end
-        end
-    end
 
+
+=begin
     def run(str)
        @leetparser.parse(str)
     end
+=end
 
-end
 
 #Leet.new.run "tja = true"
 
-#Leet.new.run "5 - 3"
+    def done(str)
+        ["quit","exit","bye",""].include?(str.chomp)
+    end
+
+
+    def start_with_file(file)
+    	result = Array.new()
+    	file = File.read(file)
+      	result = @leetparser.parse(file)
+      	result.eval
+    end
+
+
+    def log(state = true)
+      	if state
+        	@leetparser.logger.level = Logger::DEBUG
+      	else
+        	@leetparser.logger.level = Logger::WARN
+      	end
+    end
+end
+
+
+
+p = Leet.new
+p.log(true)
+p.start_with_file("leet.txt")
+
+
+
+
+
+=begin
+class TestFaculty < Test::Unit::TestCase
+
+  def test_logic1
+    reader = Leet.new
+    reader = reader.leetparser
+	assert_equal(reader.parse('1 + 2'), 3)
+	assert_equal(reader.parse('5 - 2'), 3)
+  end
+end
+=end
 
 
 
 
 
 
+
+
+
+
+
+
+
+=begin
 class TestFaculty < Test::Unit::TestCase
 
   def test_logic1
@@ -140,3 +245,4 @@ class TestFaculty < Test::Unit::TestCase
     assert_equal(reader.parse("not b"), true)
   end
 end
+=end

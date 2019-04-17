@@ -12,10 +12,11 @@
 
 =end
 
-@@variables ={} 
+@@variables = {} 
 
 
 class StmtList
+    attr_accessor :stmt_list, :stmt
     def initialize stmt_list, stmt
         @stmt_list = stmt_list
         @stmt = stmt
@@ -27,47 +28,59 @@ class StmtList
 end
 
 class AddNode
-    def initialize a,b
-        @a = a
-        @b = b
+    attr_accessor :a, :op, :b
+    def initialize a,op,b
+        @a = a.eval
+        @op = op
+        @b = b.eval
     end
     def eval
-        puts @a + @b
-        @a + @b
+        if op == '+'
+            puts @a + @b
+        elsif op == '-'
+            puts @a - @b
+        end
     end
 end
 
+=begin
 class MinusNode
+    attr_accessor :a, :b
     def initialize a,b
         @a = a
         @b = b
     end
     def eval
-        puts @a - @b
         @a - @b
     end
 end
-
+=end
 
 class MultiNode
-    def initialize a,b
+    attr_accessor :a, :op, :b
+    def initialize a, op, b
         @a = a
+        @op = op
         @b = b
     end
     def eval
-        puts @a * @b
-        @a * @b
+        #puts @a * @b
+        return @a * @b
     end
 end
 
 
+
+
+=begin
 class PrintNode
     attr_accessor :value
     def initialize(value)
       @print = value
     end
     def eval()
-      puts @print.eval
+      @print.eval
     end
-  end
+end
 
+=end
