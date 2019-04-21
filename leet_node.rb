@@ -28,17 +28,17 @@ class StmtList
 end
 
 class AddNode
-    attr_accessor :a, :op, :b
-    def initialize a,op,b
-        @a = a.eval
+    attr_accessor :lhs, :op, :rhs
+    def initialize lhs,op,rhs
+        @lhs = lhs.eval
         @op = op
-        @b = b.eval
+        @rhs = rhs.eval
     end
     def eval
         if op == '+'
-            puts @a + @b
+            return @lhs + @rhs
         elsif op == '-'
-            puts @a - @b
+            return @lhs - @rhs
         end
     end
 end
@@ -57,15 +57,15 @@ end
 =end
 
 class MultiNode
-    attr_accessor :a, :op, :b
-    def initialize a, op, b
-        @a = a
+    attr_accessor :lhs, :op, :rhs
+    def initialize lhs, op, rhs
+        @lhs = lhs
         @op = op
-        @b = b
+        @rhs = rhs
     end
     def eval
         #puts @a * @b
-        return @a * @b
+        return @lhs * @rhs
     end
 end
 

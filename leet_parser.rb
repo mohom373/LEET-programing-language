@@ -85,7 +85,7 @@ class Leet
 			end
 
 			rule :arithmetic do
-				match(:arithmetic, :add_op, :term) {|a,op,b| AddNode.new(a,op,b)}
+				match(:arithmetic, :add_op, :term) {|lhs,op,rhs| AddNode.new(lhs,op,rhs)}
 				match(:term)
 			end
 
@@ -95,7 +95,7 @@ class Leet
 			end
 
 			rule :term do
-				match(:term, :mult_op, :factor) {|a,op,b| MultiNode.new(a,op,b)}
+				match(:term, :mult_op, :factor) {|lhs,op,rhs| MultiNode.new(lhs,op,rhs)}
 				match(:factor)
 			end
 
@@ -182,7 +182,7 @@ class Leet
     	result = Array.new()
     	file = File.read(file)
       	result = @leetparser.parse(file)
-      	result.eval
+      	puts result.eval
     end
 
 
