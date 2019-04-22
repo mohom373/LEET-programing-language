@@ -9,15 +9,15 @@
 @@type_table = {String => "<57r1ng>", Integer => "<1n7>", 
    Float => "<fl0a7>", Bool => "<b00l>", List => "<l175>"}
 @@type_value = {"<57r1ng>" => "", "<1n7>" => 0, "fl0a7" => 0.0, "<b00l>" => "true", "<l157>" => []}
-
 =end
 
-@@variables = {} 
+
+#variables = {} 
 
 
 class StmtList
     attr_accessor :stmt_list, :stmt
-    def initialize stmt_list, stmt
+    def initialize (stmt_list, stmt)
         @stmt_list = stmt_list
         @stmt = stmt
     end
@@ -27,60 +27,75 @@ class StmtList
     end
 end
 
-class AddNode
-    attr_accessor :lhs, :op, :rhs
-    def initialize lhs,op,rhs
-        @lhs = lhs.eval
-        @op = op
-        @rhs = rhs.eval
-    end
-    def eval
-        if op == '+'
-            return @lhs + @rhs
-        elsif op == '-'
-            return @lhs - @rhs
-        end
-    end
-end
 
-=begin
-class MinusNode
-    attr_accessor :a, :b
-    def initialize a,b
-        @a = a
-        @b = b
-    end
-    def eval
-        @a - @b
-    end
-end
-=end
-
-class MultiNode
+class ArithmNode
     attr_accessor :lhs, :op, :rhs
-    def initialize lhs, op, rhs
+    def initialize(lhs, op, rhs)
         @lhs = lhs
         @op = op
         @rhs = rhs
     end
+  
     def eval
-        #puts @a * @b
-        return @lhs * @rhs
+        case @op
+            when '+' then return (@lhs.eval + @rhs.eval)
+            when '-' then return (@lhs.eval - @rhs.eval)
+        end
     end
+end
+
+class TermNode
+    attr_accessor :lhs, :op, :rhs
+    def initialize(lhs, op, rhs)
+        @lhs = lhs
+        @op = op
+        @rhs = rhs
+    end
+  
+    def eval
+        case @op
+            when '*' then return (@lhs.eval * @rhs.eval)
+            when '/' then return (@lhs.eval / @rhs.eval)
+        end
+    end
+end
+
+class RelationNode
+    attr_accessor :lhs, :op, :rhs
+    def initialize(lhs, op, rhs)
+        @lhs = lhs
+        @op = op
+        @rhs = rhs
+    end
+
+    def eval
+        case @op
+            when '==' then return check_true_or_false(@lhs.eval == @rhs.eval)
+            when '!=' then return check_true_or_false(@lhs.eval != @rhs.eval)
+            when '>' then return check_true_or_false(@lhs.eval > @rhs.eval)
+            when '<' then return check_true_or_false(@lhs.eval < @rhs.eval)
+            when '>=' then return check_true_or_false(@lhs.eval >= @rhs.eval)
+            when '<=' then return check_true_or_false(@lhs.eval <= @rhs.eval)
+        end
+    end
+
+    def check_true_or_false(arg)
+        if arg then return true
+        else return false
+        end
+    end 
 end
 
 
 
 
-=begin
-class PrintNode
-    attr_accessor :value
-    def initialize(value)
-      @print = value
+class Number
+    def initialize(number)
+        @value = number
     end
-    def eval()
-      @print.eval
+    
+    def eval
+        return @value
     end
 end
 
-=end

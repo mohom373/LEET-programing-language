@@ -11,6 +11,10 @@ class Leet
             #token(/--.+/) # ignore comments
             token(/\d+/) { |x| x.to_i } # Match integer
             token(/[a-zA-Z]+/) {|x| x.to_s} # Match chars
+            token(/\=\=/) {|x| x}  
+            token(/\!\=/) {|x| x} 
+            token(/\>\=/) {|x| x}
+            token(/\<\=/) {|x| x}
             token(/./) {|x| x}
 
 
@@ -35,7 +39,6 @@ class Leet
                 # match(:function_definition)
                 # match(:function_call)
                 #match(:print_stmt)  
-				#match(:expr)
 				
 				#match(:assign)
 				match(:expr) 
@@ -66,12 +69,12 @@ class Leet
 				#match('true'){true}
                 #match('false'){false}
 				#match(:var)
-				match(:comparison)
-			end
+                match(:comparison)
+            end
 
 
 			rule :comparison do
-				match(:comparison, :comp_op, :arithmetic)
+				match(:comparison, :comp_op, :arithmetic) {|lhs, op, rhs| RelationNode.new(lhs, op, rhs)}
 				match(:arithmetic)
 			end
 
@@ -85,7 +88,7 @@ class Leet
 			end
 
 			rule :arithmetic do
-				match(:arithmetic, :add_op, :term) {|lhs,op,rhs| AddNode.new(lhs,op,rhs)}
+				match(:arithmetic, :add_op, :term) {|lhs,op,rhs| ArithmNode.new(lhs,op,rhs)}
 				match(:term)
 			end
 
@@ -95,7 +98,7 @@ class Leet
 			end
 
 			rule :term do
-				match(:term, :mult_op, :factor) {|lhs,op,rhs| MultiNode.new(lhs,op,rhs)}
+				match(:term, :mult_op, :factor) {|lhs,op,rhs| TermNode.new(lhs,op,rhs)}
 				match(:factor)
 			end
 
@@ -105,12 +108,13 @@ class Leet
 			end
 			rule :factor do
 				#match(:var)
-				match(:numbers)
+                match(:number)
+                match('(', :expr, ')') {|_, expr, _| expr}  
 			end
 
 
-			rule :numbers do
-				match(Integer)
+			rule :number do
+				match(Integer) {|int| Number.new(int) } 
 			end
 
 
@@ -131,22 +135,6 @@ class Leet
             rule :var do
                 #match(String)
                 match(/[a-zA-Z]+/) {|var| @@variables.include?(var) ?@@variables[var] : var}
-            end
-=end
-
-=begin
-            rule :expr do 
-                match(:a_expr)
-                match(:m_expr)
-            end
-
-            rule :a_expr do
-                match(:integer, "+", :integer) {|a,_,b| AddNode.new(a,b)}
-            end
-=end
-=begin
-            rule :m_expr do 
-                match(:expr, "*", :integer) { |a,_,b| MultiNode.new(a,b) }
             end
 =end
 
