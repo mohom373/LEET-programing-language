@@ -60,7 +60,7 @@ class TermNode
     end
 end
 
-class RelationNode
+class RelationAndLogicNode
     attr_accessor :lhs, :op, :rhs
     def initialize(lhs, op, rhs)
         @lhs = lhs
@@ -76,12 +76,16 @@ class RelationNode
             when '<' then return check_true_or_false(@lhs.eval < @rhs.eval)
             when '>=' then return check_true_or_false(@lhs.eval >= @rhs.eval)
             when '<=' then return check_true_or_false(@lhs.eval <= @rhs.eval)
+            when '4nd' then return check_true_or_false(@lhs.eval && @rhs.eval)
+            when '0r' then return check_true_or_false(@lhs.eval || @rhs.eval)
         end
     end
 
-    def check_true_or_false(arg)
-        if arg then return true
-        else return false
+    def check_true_or_false(bool)
+        if bool == true
+            return true
+        else 
+            return false
         end
     end 
 end
@@ -89,9 +93,9 @@ end
 
 
 
-class Number
-    def initialize(number)
-        @value = number
+class Factor
+    def initialize(value)
+        @value = value
     end
     
     def eval
@@ -99,3 +103,12 @@ class Number
     end
 end
 
+class PrintNode
+    def initialize(value)
+        @value = value
+    end
+
+    def eval
+        puts @value.eval
+    end
+end

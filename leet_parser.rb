@@ -7,14 +7,20 @@ class Leet
     attr_reader :leetparser 
     def initialize 
         @leetparser = Parser.new("L33t lang") do
-            token(/\s+/) # ignore whitespaces
-            #token(/--.+/) # ignore comments
+            token(/\s+/) # Ignore whitespaces
+            #token(/--.+/) # Ignore comments
+            token(/pr1n7/) {|x| x} # Match print function
+            token(/4nd/)
+            token(/0r/)
+            token(/\d+[.]\d+/) {|x| x.to_f} # Match float
             token(/\d+/) { |x| x.to_i } # Match integer
             token(/[a-zA-Z]+/) {|x| x.to_s} # Match chars
             token(/\=\=/) {|x| x}  
             token(/\!\=/) {|x| x} 
             token(/\>\=/) {|x| x}
             token(/\<\=/) {|x| x}
+            #token(/and/) {|x| x}
+            #token(/or/) {|x| x}
             token(/./) {|x| x}
 
 
@@ -38,13 +44,16 @@ class Leet
                 # match(:break)
                 # match(:function_definition)
                 # match(:function_call)
-                #match(:print_stmt)  
+                match(:print_stmt)  
 				
 				#match(:assign)
 				match(:expr) 
             end
 
-
+            rule :print_stmt do
+                match('pr1n7', '"', :expr, '"') {|_, _, print_val ,_|PrintNode.new(print_val) }
+            end
+              
 		
 =begin
             rule :assign do
@@ -56,25 +65,31 @@ class Leet
 			end
 
 			rule :bool_expr do 
-				match(:bool_expr, 'or', :bool_term)
+				match(:bool_expr, '0r', :bool_term) {|lhs, op, rhs| RelationAndLogicNode.new(lhs, op, rhs)}
 				match(:bool_term)
 			end
 
 			rule :bool_term do 
-				match(:bool_term, 'and', :bool_factor)
+				match(:bool_term, '4nd', :bool_factor) {|lhs, op, rhs| RelationAndLogicNode.new(lhs, op, rhs)}
 				match(:bool_factor)
 			end
 
-			rule :bool_factor do
-				#match('true'){true}
-                #match('false'){false}
-				#match(:var)
+            rule :bool_factor do
+                match('(', :bool_expr, ')') {|_, expr, _| expr}
+				#match('true') {|bool| Factor.new(bool)}
+                #match('false') {|bool| Factor.new(bool)}
+                #match(:var)
+                match(:bool_val)
                 match(:comparison)
             end
 
-
+            rule :bool_val do
+                match('true')
+                match('false')
+            end
+            
 			rule :comparison do
-				match(:comparison, :comp_op, :arithmetic) {|lhs, op, rhs| RelationNode.new(lhs, op, rhs)}
+				match(:comparison, :comp_op, :arithmetic) {|lhs, op, rhs| RelationAndLogicNode.new(lhs, op, rhs)}
 				match(:arithmetic)
 			end
 
@@ -107,16 +122,22 @@ class Leet
 				match('/')
 			end
 			rule :factor do
-				#match(:var)
-                match(:number)
                 match('(', :expr, ')') {|_, expr, _| expr}  
+                #match(:var)
+                match(:integer)
+                match(:float)
+            end
+
+
+			rule :integer do
+                match(Integer) {|integer| Factor.new(integer) } 
+                match('-', Integer) {|_, integer| Factor.new(-integer)}
 			end
 
-
-			rule :number do
-				match(Integer) {|int| Number.new(int) } 
+			rule :float do
+                match(Float) {|float| Factor.new(float) } 
+                match('-', Float) {|_, float| Factor.new(-float)}
 			end
-
 
 =begin
             rule :expr do
