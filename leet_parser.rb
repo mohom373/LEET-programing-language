@@ -8,10 +8,13 @@ class Leet
     def initialize 
         @leetparser = Parser.new("L33t lang") do
             token(/\s+/) # Ignore whitespaces
-            #token(/--.+/) # Ignore comments
+            token(/\#.*/) # Ignore comments
+            token(/true/) {|x| x}
+            token(/false/) {|x| x}
+            token(/and/) {|x| x}
+            token(/or/) {|x| x}
+            token(/not/) {|x| x}
             token(/pr1n7/) {|x| x} # Match print function
-            token(/4nd/)
-            token(/0r/)
             token(/\d+[.]\d+/) {|x| x.to_f} # Match float
             token(/\d+/) { |x| x.to_i } # Match integer
             token(/[a-zA-Z]+/) {|x| x.to_s} # Match chars
@@ -19,25 +22,19 @@ class Leet
             token(/\!\=/) {|x| x} 
             token(/\>\=/) {|x| x}
             token(/\<\=/) {|x| x}
-            #token(/and/) {|x| x}
-            #token(/or/) {|x| x}
             token(/./) {|x| x}
-
-
 
             start :program do
                 match(:statement_list)
             end
 
             rule :statement_list do 
-                match(:statement_list, :statement) { |stmt_list, stmt| StmtList.new(stmt_list, stmt) }
+                match(:statement_list, :statement) { |stmt_list, stmt| StmtListNode.new(stmt_list, stmt) }
                 match(:statement) { |stmt| stmt }
             end
 
             rule :statement do 
                   
-                # match(:input)
-                # match(:output)
                 # match(:condition)
                 # match(:repetition)
                 # match(:return)
@@ -46,54 +43,69 @@ class Leet
                 # match(:function_call)
                 match(:print_stmt)  
 				
-				#match(:assign)
+				match(:assign)
 				match(:expr) 
             end
 
             rule :print_stmt do
                 match('pr1n7', '"', :expr, '"') {|_, _, print_val ,_|PrintNode.new(print_val) }
+                
+                match('pr1n7', '"', :assign, '"') {|_, _, print_val ,_|PrintNode.new(print_val) }
             end
               
 		
-=begin
             rule :assign do
                 match(:var, '=', :expr){|var, _, expr|@@variables[var]= expr}
             end
-=end
+
 			rule :expr do 
-				match(:bool_expr)
+				match(:expr, :arithm_op , :term) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
+				match(:term) 
 			end
 
-			rule :bool_expr do 
-				match(:bool_expr, '0r', :bool_term) {|lhs, op, rhs| RelationAndLogicNode.new(lhs, op, rhs)}
-				match(:bool_term)
+			rule :term do 
+				match(:term, :term_op, :logic) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
+				match(:logic)
 			end
 
-			rule :bool_term do 
-				match(:bool_term, '4nd', :bool_factor) {|lhs, op, rhs| RelationAndLogicNode.new(lhs, op, rhs)}
-				match(:bool_factor)
-			end
+            rule :logic do
+                match(:logic, :logic_op, :comparison) {|lhs, op, rhs| LogicNode.new(lhs, op, rhs)} 
+                match(:not_logic_op, :comparison) {|op, rhs| NotLogicNode.new(op, rhs)}
 
-            rule :bool_factor do
-                match('(', :bool_expr, ')') {|_, expr, _| expr}
-				#match('true') {|bool| Factor.new(bool)}
-                #match('false') {|bool| Factor.new(bool)}
-                #match(:var)
-                match(:bool_val)
                 match(:comparison)
             end
 
-            rule :bool_val do
-                match('true')
-                match('false')
-            end
-            
 			rule :comparison do
-				match(:comparison, :comp_op, :arithmetic) {|lhs, op, rhs| RelationAndLogicNode.new(lhs, op, rhs)}
-				match(:arithmetic)
+				match(:comparison, :comp_op, :factor) {|lhs, op, rhs| CompNode.new(lhs, op, rhs)}
+				match(:factor)
+            end
+                        
+            rule :factor do 
+                match('(', :expr, ')') {|_, expr, _| expr}  
+                match(:type)
+            end
+
+			rule :arithm_op do
+				match('+')
+				match('-')
 			end
 
-			rule :comp_op do
+            rule :term_op do
+				match('*')
+                match('/')
+                match('%')
+			end
+            
+            rule :logic_op do
+                match('and')
+                match('or')
+            end
+
+            rule :not_logic_op do
+                match('not')
+            end
+
+            rule :comp_op do
 				match('<')
 				match('>')
 				match('>=')
@@ -102,66 +114,38 @@ class Leet
 				match('!=')
 			end
 
-			rule :arithmetic do
-				match(:arithmetic, :add_op, :term) {|lhs,op,rhs| ArithmNode.new(lhs,op,rhs)}
-				match(:term)
-			end
 
-			rule :add_op do
-				match('+')
-				match('-')
-			end
-
-			rule :term do
-				match(:term, :mult_op, :factor) {|lhs,op,rhs| TermNode.new(lhs,op,rhs)}
-				match(:factor)
-			end
-
-			rule :mult_op do
-				match('*')
-				match('/')
-			end
-			rule :factor do
-                match('(', :expr, ')') {|_, expr, _| expr}  
-                #match(:var)
-                match(:integer)
+            rule :type do
                 match(:float)
+                match(:integer)
+                match(:bool)
             end
 
-
 			rule :integer do
-                match(Integer) {|integer| Factor.new(integer) } 
-                match('-', Integer) {|_, integer| Factor.new(-integer)}
+                match('-', Integer) {|_, integer| FactorNode.new(-integer)}
+                match(Integer) {|integer| FactorNode.new(integer) } 
 			end
 
 			rule :float do
-                match(Float) {|float| Factor.new(float) } 
-                match('-', Float) {|_, float| Factor.new(-float)}
-			end
+                match('-', Float) {|_, float| FactorNode.new(-float)}
+                match(Float) {|float| FactorNode.new(float) } 
+            end
+            
+            rule :bool do
+                match(/true/) {|bool| BoolNode.new(bool) }
+                match(/false/) {|bool| BoolNode.new(bool) }
+            end
 
-=begin
-            rule :expr do
-                match(:expr, 'or', :expr) {|exp1, _,exp2| exp1 || exp2}
-                match(:expr, 'and', :expr) {|exp1, _, exp2| exp1 && exp2}
-                match('not', :expr) {|_, expr| !expr}
-                match(:term)
-            end
-    
-            rule :term do
-                match('true'){true}
-                match('false'){false}
-                match(:var)
-            end
-    
             rule :var do
                 #match(String)
                 match(/[a-zA-Z]+/) {|var| @@variables.include?(var) ?@@variables[var] : var}
             end
+=begin
+            rule :var do
+                match(/[a-zA-Z]+/) {|var| VarNode.new(var)}
+            end
 =end
 
-
-		end
-	end
 =begin
             rule :literal do
                 match('<1n7>') 
@@ -180,6 +164,8 @@ class Leet
 =end
 
 
+		end
+	end
 #Leet.new.run "tja = true"
 
     def done(str)

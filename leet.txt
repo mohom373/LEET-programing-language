@@ -1,2 +1,7 @@
-pr1n7 "3 * (2 + 1)"
-
+pr1n7 "5 + 5"
+pr1n7 "5 * 5 + 2"
+pr1n7 "(5 + 5) * 3"
+pr1n7 "true"
+pr1n7 "not true"
+pr1n7 "true and false"
+pr1n7 "hej = 3"
