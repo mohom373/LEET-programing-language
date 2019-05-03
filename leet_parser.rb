@@ -9,15 +9,16 @@ class Leet
         @leetparser = Parser.new("L33t lang") do
             token(/\s+/) # Ignore whitespaces
             token(/\#.*/) # Ignore comments
+            token(/pr1n7/) {|x| x} # Match print function
+            token(/\d+[.]\d+/) {|x| x.to_f} # Match float
+            token(/\d+/) { |x| x.to_i } # Match integer
+            token(/[a-zA-Z]+/) {|x| x.to_s} # Match chars
+            token(/"[\w\W]*"/) {|x| x.to_s} #String
             token(/true/) {|x| x}
             token(/false/) {|x| x}
             token(/and/) {|x| x}
             token(/or/) {|x| x}
             token(/not/) {|x| x}
-            token(/pr1n7/) {|x| x} # Match print function
-            token(/\d+[.]\d+/) {|x| x.to_f} # Match float
-            token(/\d+/) { |x| x.to_i } # Match integer
-            token(/[a-zA-Z]+/) {|x| x.to_s} # Match chars
             token(/\=\=/) {|x| x}  
             token(/\!\=/) {|x| x} 
             token(/\>\=/) {|x| x}
@@ -48,16 +49,16 @@ class Leet
             end
 
             rule :print_stmt do
-                match('pr1n7', '"', :expr, '"') {|_, _, print_val ,_|PrintNode.new(print_val) }
+                match('pr1n7', '(', :expr, ')') {|_, _, print_val ,_|PrintNode.new(print_val) }
                 
-                match('pr1n7', '"', :assign, '"') {|_, _, print_val ,_|PrintNode.new(print_val) }
+                match('pr1n7', '(', :assign, ')') {|_, _, print_val ,_|PrintNode.new(print_val) }
             end
               
-		
+=begin
             rule :assign do
                 match(:var, '=', :expr){|var, _, expr|@@variables[var]= expr}
             end
-
+=end
 			rule :expr do 
 				match(:expr, :arithm_op , :term) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
 				match(:term) 
@@ -118,19 +119,24 @@ class Leet
             rule :type do
                 match(:float)
                 match(:integer)
+                match(:string)
                 match(:bool)
             end
-
-			rule :integer do
-                match('-', Integer) {|_, integer| FactorNode.new(-integer)}
-                match(Integer) {|integer| FactorNode.new(integer) } 
-			end
 
 			rule :float do
                 match('-', Float) {|_, float| FactorNode.new(-float)}
                 match(Float) {|float| FactorNode.new(float) } 
             end
             
+			rule :integer do
+                match('-', Integer) {|_, integer| FactorNode.new(-integer)}
+                match(Integer) {|integer| FactorNode.new(integer) } 
+			end
+
+            rule :string do
+                match(/"[\w\W]*"/) {|string| FactorNode.new(string)}
+            end
+
             rule :bool do
                 match(/true/) {|bool| BoolNode.new(bool) }
                 match(/false/) {|bool| BoolNode.new(bool) }

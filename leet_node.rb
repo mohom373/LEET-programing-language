@@ -11,6 +11,24 @@
 =end
 
 @@variables = {}
+
+#================================= Global functions
+
+
+def type_checker(expr)
+    if (expr.eval.is_a?(Integer))
+        object = FactorNode.new(expr.eval)
+    elsif(expr_in.eval == :FALSE)
+        object= BOOL_C.new(expr_in.eval)
+    elsif(expr_in.eval == :TRUE)
+        object= BOOL_C.new(expr_in.eval)
+    end
+    return object
+end
+
+
+
+#================================ Leet classes
 class Scope
     def start_scope
         @@scope += 1
@@ -181,3 +199,5 @@ class VarNode
     end
 end
 =end
+
+
