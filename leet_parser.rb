@@ -1,4 +1,5 @@
 require './debug_fix_rdparse.rb'
+#require './rdparse'
 require './leet_node.rb'
 require 'test/unit'
 
@@ -10,6 +11,10 @@ class Leet
             token(/\s+/) # Ignore whitespaces
             token(/\#.*/) # Ignore comments
             token(/pr1n7/) {|x| x} # Match print function
+            token(/1n7/) {|x| x}
+            token(/fl047/) {|x| x}
+            token(/b00l/) {|x| x}
+            token(/57r1ng/) {|x| x}
             token(/\d+[.]\d+/) {|x| x.to_f} # Match float
             token(/\d+/) { |x| x.to_i } # Match integer
             token(/[a-zA-Z]+/) {|x| x.to_s} # Match chars
@@ -36,22 +41,24 @@ class Leet
 
             rule :statement do 
                   
-                # match(:condition)
                 # match(:repetition)
                 # match(:return)
                 # match(:break)
                 # match(:function_definition)
                 # match(:function_call)
-                match(:print_stmt)  
-				
-				match(:assign)
-				match(:expr) 
+                match(:print_stmt) {|x| x}
+                match(:declare) {|x| x}
+				match(:assign) {|x| x}
+                match(:condition) {|x| x}
+                match(:expr)  {|x| x}
             end
 
             rule :print_stmt do
                 match('pr1n7', '(', :expr, ')') {|_, _, print_val ,_|PrintNode.new(print_val) }
                 
                 match('pr1n7', '(', :assign, ')') {|_, _, print_val ,_|PrintNode.new(print_val) }
+
+                match('pr1n7', '(', :var, ')') {|_, _, print_val ,_|PrintNode.new(print_val) }
             end
               
 =begin
@@ -59,6 +66,18 @@ class Leet
                 match(:var, '=', :expr){|var, _, expr|@@variables[var]= expr}
             end
 =end
+
+            rule :declare do
+                match(:type_name, :var, '=', :expr) {|type, var, _, expr| DeclareNode.new(type, var, expr)}
+            end
+
+            rule :type_name do
+                match(/1n7/) {Integer}
+                match(/fl047/) {Float}
+                match(/b00l/) 
+                match(/57r1ng/) {String}
+
+            end
 			rule :expr do 
 				match(:expr, :arithm_op , :term) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
 				match(:term) 
@@ -83,7 +102,7 @@ class Leet
                         
             rule :factor do 
                 match('(', :expr, ')') {|_, expr, _| expr}  
-                match(:type)
+                match(:data_type)
             end
 
 			rule :arithm_op do
@@ -116,8 +135,8 @@ class Leet
 			end
 
 
-            rule :type do
-                match(:float)
+            rule :data_type do
+                match(:float) 
                 match(:integer)
                 match(:string)
                 match(:bool)
@@ -141,16 +160,15 @@ class Leet
                 match(/true/) {|bool| BoolNode.new(bool) }
                 match(/false/) {|bool| BoolNode.new(bool) }
             end
-
+=begin
             rule :var do
                 #match(String)
                 match(/[a-zA-Z]+/) {|var| @@variables.include?(var) ?@@variables[var] : var}
             end
-=begin
+=end
             rule :var do
                 match(/[a-zA-Z]+/) {|var| VarNode.new(var)}
             end
-=end
 
 =begin
             rule :literal do
@@ -183,9 +201,33 @@ class Leet
     	result = Array.new()
     	file = File.read(file)
       	result = @leetparser.parse(file)
-      	puts result.eval
+      	result.eval
     end
 
+
+    
+    def run_file(filename)
+        code = "";
+        File.open(filename, "r") do |f|
+            f.each_line do |line|
+            code += line
+            end
+        end
+        puts "=> #{@leetparser.parse code}"
+    end
+
+
+    def roll
+        print "[LeetLang] "
+        str = gets
+        if done(str) then
+            puts "Bye."
+        else
+            puts "=> #{@leetparser.parse str}"
+            roll
+        end
+    end
+    
 
     def log(state = true)
       	if state
@@ -202,7 +244,8 @@ p = Leet.new
 p.log(true)
 p.start_with_file("leet.txt")
 
-
+#p.run_file("leet.txt")
+#p.roll
 
 
 

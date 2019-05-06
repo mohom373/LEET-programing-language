@@ -1,16 +1,12 @@
-=begin
+
 @@variables = [{}] 
-@@functions = {} 
+@@functions = {}
 @@function_param = {} 
 @@scope = 0
 @@return = nil 
 
-@@type_table = {String => "<57r1ng>", Integer => "<1n7>", 
-   Float => "<fl0a7>", Bool => "<b00l>", List => "<l175>"}
-@@type_value = {"<57r1ng>" => "", "<1n7>" => 0, "fl0a7" => 0.0, "<b00l>" => "true", "<l157>" => []}
-=end
-
-@@variables = {}
+@@bool_table = {TrueClass => "b00l", FalseClass => "b00l"}
+#@@type_value = {"57r1ng" => "", "1n7" => 0, "fl0a7" => 0.0, "b00l" => "true", "l157" => []}
 
 #================================= Global functions
 
@@ -43,7 +39,7 @@ class Scope
         end
     end
 
-    def check(var, table)
+    def check_if_exist(var, table)
         if table == @@function_param
             table[var]
         elsif table == @@variables
@@ -60,6 +56,7 @@ class Scope
         end
     end
 end  
+$scope = Scope.new
 
 class StmtListNode
     attr_accessor :stmt_list, :stmt
@@ -68,8 +65,8 @@ class StmtListNode
         @stmt = stmt
     end
     def eval
-        @stmt.eval
         @stmt_list.eval unless @stmt_list.nil?
+        @stmt.eval
     end
 end
 #========================================== CALCULATIONS
@@ -182,7 +179,7 @@ class ReturnNode
     end
 end
 
-=begin
+
 class VarNode 
     attr_accessor :identifier
     def initialize(var)
@@ -191,13 +188,92 @@ class VarNode
 
     def eval
         start = @@scope
-        if function_param.has_key?(@identifier) == true
-            return Scope.check(@identifier, @@function_param) 
-        else 
-            return Scope.check(@identifier, @@variables) 
+        #if @@function_param.has_key?(@identifier) == true
+            #return Scope.check_if_exist(@identifier, @@function_param) 
+        #else 
+        if @@variables[start].has_key?(@identifier) == true 
+            return $scope.check_if_exist(@identifier, @@variables) 
         end
     end
 end
+
+=begin
+class DeclareNode
+    attr_accessor :type, :var, :expr
+    def initialize(type, var, expr)
+        @type = type
+        @var = var
+        @expr = expr
+    end
+
+    def eval
+
+        value = expr.eval
+        puts value.class
+        puts @type
+        if value.class != @type
+            abort("ERROR: Variabeln finns redan!")      
+        end
+        @@variables[@@scope][@var.identifier] = value
+        puts @@variables
+    end
+end
+=end
+
+class DeclareNode
+    attr_accessor :type, :var, :expr
+    def initialize(type, var, expr = nil)
+      @type = type
+      @var = var
+      @expr = expr
+    end
+
+    def eval()
+        if @expr != nil
+            value = @expr.eval
+        #else
+            #value = @@type_value[@type]
+        end
+        start = @@scope
+  
+        if @@variables[start].has_key?(@var.identifier)
+            abort("Error: Variable exists already!")
+        else
+            if (@type == 'b00l') and (value == 'true' or value == 'false')
+                @@variables[start][@var.identifier] = value
+            else
+                if value.class == @type
+                    @@variables[start][@var.identifier] = value
+                else
+                    abort("ERROR: Value is of a different type.")
+            end
+        end
+        puts @@variables    
+        end
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+=begin
+class VarNode
+    attr_accessor :identifier
+    def initialize(var)
+        @identifier = var
+    end
+
+    def eval
+
+
+    end
 =end
 
 

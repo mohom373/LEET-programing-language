@@ -11,7 +11,7 @@
 # 2014-02-16 New version that handles { false } blocks and :empty tokens.
 
 require 'logger'
-
+require './leet_node'
 class Rule
 
   # A rule is created through the rule method of the Parser class, like this:

@@ -1,7 +1,3 @@
-pr1n7 (5 + 5)
-pr1n7 ((5 * 5) + 2)
-pr1n7 ((5 + 5) * 3)
-pr1n7 (true)
-pr1n7 ((not true) or true)
-pr1n7 (true and false)
-pr1n7 ("hej " * 3)
+fl047 y = 7.5
+
+pr1n7 (y)
