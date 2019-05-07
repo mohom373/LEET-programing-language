@@ -19,6 +19,10 @@ class Leet
             token(/\d+/) { |x| x.to_i } # Match integer
             token(/[a-zA-Z]+/) {|x| x.to_s} # Match chars
             token(/"[\w\W]*"/) {|x| x.to_s} #String
+            token(/while/) {|x| x}
+            token(/if/) {|x| x}
+            token(/{/) {|x| x }
+            token(/}/) {|x| x }
             token(/true/) {|x| x}
             token(/false/) {|x| x}
             token(/and/) {|x| x}
@@ -41,7 +45,7 @@ class Leet
 
             rule :statement do 
                   
-                # match(:repetition)
+                match(:repetition)
                 # match(:return)
                 # match(:break)
                 # match(:function_definition)
@@ -54,11 +58,10 @@ class Leet
             end
 
             rule :print_stmt do
-                match('pr1n7', '(', :expr, ')') {|_, _, print_val ,_|PrintNode.new(print_val) }
+                match('pr1n7', '(', :expr, ')', ';') {|_, _, print_val ,_ ,_|PrintNode.new(print_val) }
                 
-                match('pr1n7', '(', :assign, ')') {|_, _, print_val ,_|PrintNode.new(print_val) }
+                match('pr1n7', '(', :assign, ')', ';') {|_, _, print_val ,_ ,_|PrintNode.new(print_val) }
 
-                match('pr1n7', '(', :var, ')') {|_, _, print_val ,_|PrintNode.new(print_val) }
             end
               
 =begin
@@ -76,7 +79,16 @@ class Leet
                 match(/fl047/) {Float}
                 match(/b00l/) 
                 match(/57r1ng/) {String}
+            end
 
+=begin
+            rule :repetition do 
+                match('while', '(', :comparison, ')', '{', :statement_list,'}'){|_, _, comparison, _, _, statement_list, _| WhileNode.new(comparison, statement_list)}
+            end
+=end
+
+            rule :condition do
+                match('if', '(', :logic, ')', '{', :statement_list, '}') {|_, _, condition, _, _, statement_list, _| IfNode.new(condition, statement_list ) }
             end
 			rule :expr do 
 				match(:expr, :arithm_op , :term) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
@@ -91,7 +103,6 @@ class Leet
             rule :logic do
                 match(:logic, :logic_op, :comparison) {|lhs, op, rhs| LogicNode.new(lhs, op, rhs)} 
                 match(:not_logic_op, :comparison) {|op, rhs| NotLogicNode.new(op, rhs)}
-
                 match(:comparison)
             end
 
@@ -102,7 +113,11 @@ class Leet
                         
             rule :factor do 
                 match('(', :expr, ')') {|_, expr, _| expr}  
-                match(:data_type)
+                match(:float) 
+                match(:integer)
+                match(:string)
+                match(:bool)
+                match(:var)
             end
 
 			rule :arithm_op do
@@ -135,13 +150,6 @@ class Leet
 			end
 
 
-            rule :data_type do
-                match(:float) 
-                match(:integer)
-                match(:string)
-                match(:bool)
-            end
-
 			rule :float do
                 match('-', Float) {|_, float| FactorNode.new(-float)}
                 match(Float) {|float| FactorNode.new(float) } 
@@ -154,43 +162,21 @@ class Leet
 
             rule :string do
                 match(/"[\w\W]*"/) {|string| FactorNode.new(string)}
+                #match(/'[\w\W]*'/) {|string| FactorNode.new(string)}
+
             end
 
             rule :bool do
                 match(/true/) {|bool| BoolNode.new(bool) }
                 match(/false/) {|bool| BoolNode.new(bool) }
             end
-=begin
-            rule :var do
-                #match(String)
-                match(/[a-zA-Z]+/) {|var| @@variables.include?(var) ?@@variables[var] : var}
-            end
-=end
+
             rule :var do
                 match(/[a-zA-Z]+/) {|var| VarNode.new(var)}
             end
-
-=begin
-            rule :literal do
-                match('<1n7>') 
-                match('<fl047>')
-                match('<57r1ng>') 
-                match('b00l')
-                match('<l157>')
-            end
-=end
-
-
-=begin
-    def run(str)
-       @leetparser.parse(str)
-    end
-=end
-
-
 		end
 	end
-#Leet.new.run "tja = true"
+
 
     def done(str)
         ["quit","exit","bye",""].include?(str.chomp)
@@ -241,7 +227,7 @@ end
 
 
 p = Leet.new
-p.log(true)
+p.log(false)
 p.start_with_file("leet.txt")
 
 #p.run_file("leet.txt")

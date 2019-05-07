@@ -1,3 +1,5 @@
-fl047 y = 7.5
-
-pr1n7 (y)
+if (false) 
+{
+    1n7 x = 5
+    pr1n7 (x);
+}

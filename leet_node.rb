@@ -144,9 +144,9 @@ end
 class BoolNode
     attr_accessor :value
     def initialize(value)
-        if value == true or value == "true" 
+        if value == true or value == 'true'
             value = true
-        elsif value == false or value == "false"
+        elsif value == false or value == 'false'
             value = false
         end
         @value = value
@@ -164,7 +164,7 @@ class PrintNode
     end
 
     def eval
-        print "#{@value.eval}\n"
+        puts "#{@value.eval}"
     end
 end
 
@@ -179,7 +179,7 @@ class ReturnNode
     end
 end
 
-
+#======================================== Variable
 class VarNode 
     attr_accessor :identifier
     def initialize(var)
@@ -197,29 +197,6 @@ class VarNode
     end
 end
 
-=begin
-class DeclareNode
-    attr_accessor :type, :var, :expr
-    def initialize(type, var, expr)
-        @type = type
-        @var = var
-        @expr = expr
-    end
-
-    def eval
-
-        value = expr.eval
-        puts value.class
-        puts @type
-        if value.class != @type
-            abort("ERROR: Variabeln finns redan!")      
-        end
-        @@variables[@@scope][@var.identifier] = value
-        puts @@variables
-    end
-end
-=end
-
 class DeclareNode
     attr_accessor :type, :var, :expr
     def initialize(type, var, expr = nil)
@@ -235,17 +212,17 @@ class DeclareNode
             #value = @@type_value[@type]
         end
         start = @@scope
-  
+        
         if @@variables[start].has_key?(@var.identifier)
-            abort("Error: Variable exists already!")
-        else
-            if (@type == 'b00l') and (value == 'true' or value == 'false')
+            abort("Abort --> Variable exists already!")
+        else 
+            if (@@bool_table.value?(@type)) and (value == true or value == false)
                 @@variables[start][@var.identifier] = value
             else
                 if value.class == @type
                     @@variables[start][@var.identifier] = value
                 else
-                    abort("ERROR: Value is of a different type.")
+                    abort("Abort --> Value is of a different type.")
             end
         end
         puts @@variables    
@@ -257,23 +234,45 @@ end
 
 
 
+#===================================== Iteration & condition
 
-
-
-
-
-
-=begin
-class VarNode
-    attr_accessor :identifier
-    def initialize(var)
-        @identifier = var
+class WhileNode
+    attr_accessor :comparison, :statement_list
+    def initialize(comparison, statement_list)
+        @comparison = comparison
+        @statement_list = statement_list
     end
 
     def eval
-
-
+        $scope.start_scope
+        while @comparison.eval == 'true' do
+            @statement_list.eval
+        end
+        $scope.end_scope
     end
-=end
+end
+
+class IfNode
+    attr_accessor :condition, :statement_list
+    def initialize(condition, statement_list)
+        @condition = condition
+        @statement_list = statement_list
+    end
+
+    def eval
+        $scope.start_scope
+        if @condition.eval
+            value = @statement_list.eval
+            $scope.end_scope
+            return value
+        end
+        $scope.end_scope
+    end
+end
+
+
+
+
+
 
 
