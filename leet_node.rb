@@ -106,9 +106,9 @@ class LogicNode
     end
 
     def eval
-        if @op == "and"
+        if @op == "4nd"
             @op = "and"
-        elsif @op == "or"
+        elsif @op == "0r"
             @op = "or"
         end        
         return BoolNode.new(instance_eval("#{@lhs.eval} #{@op} #{@rhs.eval}")).eval
@@ -123,7 +123,7 @@ class NotLogicNode
     end
 
     def eval
-        if @op == "not"
+        if @op == "n07"
             @op = "not"
         end        
 
@@ -145,9 +145,9 @@ end
 class BoolNode
     attr_accessor :value
     def initialize(value)
-        if value == true or value == 'true'
+        if value == true or value == '7ru3'
             value = true
-        elsif value == false or value == 'false'
+        elsif value == false or value == 'f4l53'
             value = false
         end
         @value = value
@@ -224,14 +224,30 @@ class DeclareNode
                     @@variables[start][@var.identifier] = value
                 else
                     abort("Abort --> Value is of a different type.")
+                end
             end
-        end
         puts @@variables    
         end
     end
 end
 
+class AssignNodes
+    attr_accessor :var, :op, :expr
+    def initialize(var, op, expr)
+        @var = var
+        @op = op
+        @expr = expr
+    end
 
+    def eval
+        if @expr != nil
+            value = @expr.eval
+        end
+
+        start = @@scope
+
+    end
+end
 
 
 
@@ -246,7 +262,7 @@ class WhileNode
 
     def eval
         $scope.start_scope
-        while @comparison.eval == 'true' do
+        while @comparison.eval == true do
             @statement_list.eval
         end
         $scope.end_scope
@@ -264,7 +280,7 @@ class IfNode
         $scope.start_scope
         condition_val = @condition.eval 
         #puts condition_val
-        if condition_val == true or condition_val == 'true'
+        if condition_val == true or condition_val == '7ru3'
             value = @statement_list.eval
             $scope.end_scope
             return value
@@ -284,7 +300,7 @@ class ElseNode
     def eval
         $scope.start_scope
         condition_val = @condition.eval 
-        if condition_val == true or condition_val == 'true'
+        if condition_val == true or condition_val == '7ru3'
             value = @statement_list1.eval
         else
             value = @statement_list2.eval

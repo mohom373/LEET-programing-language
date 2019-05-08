@@ -17,6 +17,11 @@ class Leet
             token(/57r1ng/) {|x| x}
             token(/1f/) {|x| x}
             token(/3l53/) {|x| x}
+            token(/n07/) {|x| x}
+            token(/7ru3/) {|x| x}
+            token(/f4l53/) {|x| x}
+            token(/4nd/) {|x| x}
+            token(/0r/) {|x| x}
             token(/\d+[.]\d+/) {|x| x.to_f} # Match float
             token(/\d+/) { |x| x.to_i } # Match integer
             token(/[a-zA-ZåäöÅÄÖ]+/) {|x| x.to_s} # Match chars
@@ -25,11 +30,6 @@ class Leet
             token(/while/) {|x| x}
             token(/{/) {|x| x }
             token(/}/) {|x| x }
-            token(/true/) {|x| x}
-            token(/false/) {|x| x}
-            token(/and/) {|x| x}
-            token(/or/) {|x| x}
-            token(/not/) {|x| x}
             token(/\=\=/) {|x| x}  
             token(/\!\=/) {|x| x} 
             token(/\>\=/) {|x| x}
@@ -66,12 +66,6 @@ class Leet
 
             end
               
-=begin
-            rule :assign do
-                match(:var, '=', :expr){|var, _, expr|@@variables[var]= expr}
-            end
-=end
-
             rule :declare do
                 match(:type_name, :var, '=', :expr) {|type, var, _, expr| DeclareNode.new(type, var, expr)}
             end
@@ -81,6 +75,21 @@ class Leet
                 match(/fl047/) {Float}
                 match(/b00l/) 
                 match(/57r1ng/) {String}
+            end
+
+            
+            rule :assign do
+                #match(:var, '=', :expr){|var, _, expr|@@variables[var]= expr}
+                
+                match(:var, :assign_op , :expr){|var, _, expr| }
+            end
+
+            rule :assign_op do
+                match('*=') {|m| m }
+                match('/=') {|m| m }
+                match('+=') {|m| m }
+                match('-=') {|m| m }
+                match('=') {|m| m }
             end
 
 =begin
@@ -154,12 +163,12 @@ class Leet
 			end
             
             rule :logic_op do
-                match('and')
-                match('or')
+                match('4nd')
+                match('0r')
             end
 
             rule :not_logic_op do
-                match('not')
+                match('n07')
             end
 
             rule :comp_op do
@@ -188,8 +197,8 @@ class Leet
             end
 
             rule :bool do
-                match(/true/) {|bool| BoolNode.new(bool) }
-                match(/false/) {|bool| BoolNode.new(bool) }
+                match(/7ru3/) {|bool| BoolNode.new(bool) }
+                match(/f4l53/) {|bool| BoolNode.new(bool) }
             end
 
             rule :var do
