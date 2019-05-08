@@ -1,5 +1,10 @@
-if (false) 
-{
-    1n7 x = 5
-    pr1n7 (x);
+# 1n7 x = 5
+
+1f (15 < 3){
+    1n7 x = 8
 }
+3l53
+{
+  pr1n7('FEEEEEEEEEEEEEEEEEEEEEEL');
+} 
+

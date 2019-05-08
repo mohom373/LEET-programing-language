@@ -15,12 +15,14 @@ class Leet
             token(/fl047/) {|x| x}
             token(/b00l/) {|x| x}
             token(/57r1ng/) {|x| x}
+            token(/1f/) {|x| x}
+            token(/3l53/) {|x| x}
             token(/\d+[.]\d+/) {|x| x.to_f} # Match float
             token(/\d+/) { |x| x.to_i } # Match integer
-            token(/[a-zA-Z]+/) {|x| x.to_s} # Match chars
-            token(/"[\w\W]*"/) {|x| x.to_s} #String
+            token(/[a-zA-ZåäöÅÄÖ]+/) {|x| x.to_s} # Match chars
+            token(/"[^\"]*"/) {|m| m.to_s } # Double quote string
+            token(/'[^\"]*'/) {|m| m.to_s } # Single quote string
             token(/while/) {|x| x}
-            token(/if/) {|x| x}
             token(/{/) {|x| x }
             token(/}/) {|x| x }
             token(/true/) {|x| x}
@@ -84,12 +86,32 @@ class Leet
 =begin
             rule :repetition do 
                 match('while', '(', :comparison, ')', '{', :statement_list,'}'){|_, _, comparison, _, _, statement_list, _| WhileNode.new(comparison, statement_list)}
-            end
+            end 
 =end
 
             rule :condition do
-                match('if', '(', :logic, ')', '{', :statement_list, '}') {|_, _, condition, _, _, statement_list, _| IfNode.new(condition, statement_list ) }
+                #match('if', '(', :expr, ')', '{', :statement_list, :midcond,'}') {|_, _, condition, _, _, statement_list1, _, statement_list2| ElseIfNode.new(condition, statement_list ) }
+                
+
+
+                match('1f', '(', :expr, ')', '{', :statement_list, '}','3l53', 
+                '{', :statement_list,'}') {|_, _, condition, _, _, statement_list1, _, _, _, statement_list2, _| ElseNode.new(condition, statement_list1, statement_list2) }
+                
+
+
+                match('1f', '(', :expr, ')', '{', :statement_list, '}') {|_, _, condition, _, _, statement_list, _| IfNode.new(condition, statement_list ) }
             end
+
+=begin
+            rule :midcond do
+                match('elseif', '(', :expr, ')', '{', :statement_list, :endcond, '}' )
+                match('elseif', '(', :expr, ')', '{', :statement_list, '}' )
+            end
+
+            rule :endcond do
+                match('else', '{', :statement_list, '}')
+            end                
+=end
 			rule :expr do 
 				match(:expr, :arithm_op , :term) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
 				match(:term) 
@@ -141,8 +163,8 @@ class Leet
             end
 
             rule :comp_op do
-				match('<')
-				match('>')
+				match('<') 
+				match('>')  
 				match('>=')
 				match('<=')
 				match('==')
@@ -161,9 +183,8 @@ class Leet
 			end
 
             rule :string do
-                match(/"[\w\W]*"/) {|string| FactorNode.new(string)}
-                #match(/'[\w\W]*'/) {|string| FactorNode.new(string)}
-
+                match(/"[^\"]*"/) {|string| FactorNode.new(string)}
+                match(/'[^\"]*'/) {|string| FactorNode.new(string)}
             end
 
             rule :bool do
@@ -199,7 +220,7 @@ class Leet
             code += line
             end
         end
-        puts "=> #{@leetparser.parse code}"
+        puts "============> #{@leetparser.parse code}"
     end
 
 
@@ -227,7 +248,7 @@ end
 
 
 p = Leet.new
-p.log(false)
+p.log(true)
 p.start_with_file("leet.txt")
 
 #p.run_file("leet.txt")

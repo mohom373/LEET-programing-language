@@ -35,11 +35,11 @@ class Scope
         @@variables.pop
         @@scope -= 1
         if @@scope < 0
-            abort("EROOOOOOOOOORRRRR")
+            abort("ABOOOOOOOOOOOOOOORT")
         end
     end
 
-    def check_if_exist(var, table)
+    def return_var(var, table)
         if table == @@function_param
             table[var]
         elsif table == @@variables
@@ -51,7 +51,7 @@ class Scope
                 start -= 1
             end
             if @@variables[0][var] == nil
-                abort("ERROR: The variable \'#{var}\' doesn't exist!")
+                abort("Abort --> The variable \'#{var}\' doesn't exist!")
             end
         end
     end
@@ -79,7 +79,7 @@ class ArithmNode
     end
   
     def eval
-        return instance_eval("#{lhs.eval} #{op} #{rhs.eval}")
+        return instance_eval("#{@lhs.eval} #{@op} #{@rhs.eval}")
     end
 end
 
@@ -92,7 +92,8 @@ class CompNode
     end
 
     def eval
-        return BoolNode.new(instance_eval("#{lhs.eval} #{op} #{rhs.eval}")).eval
+        #puts BoolNode.new(instance_eval("#{@lhs.eval} #{@op} #{@rhs.eval}")).eval
+        return BoolNode.new(instance_eval("#{@lhs.eval} #{@op} #{@rhs.eval}")).eval
     end
 end
 
@@ -110,7 +111,7 @@ class LogicNode
         elsif @op == "or"
             @op = "or"
         end        
-        return BoolNode.new(instance_eval("#{lhs.eval} #{op} #{rhs.eval}")).eval
+        return BoolNode.new(instance_eval("#{@lhs.eval} #{@op} #{@rhs.eval}")).eval
     end
 end
 
@@ -126,7 +127,7 @@ class NotLogicNode
             @op = "not"
         end        
 
-        return BoolNode.new(instance_eval("#{op} #{rhs.eval}")).eval
+        return BoolNode.new(instance_eval("#{@op} #{@rhs.eval}")).eval
     end
 end 
 #========================================== Values
@@ -189,10 +190,10 @@ class VarNode
     def eval
         start = @@scope
         #if @@function_param.has_key?(@identifier) == true
-            #return Scope.check_if_exist(@identifier, @@function_param) 
+            #return Scope.return_var(@identifier, @@function_param) 
         #else 
         if @@variables[start].has_key?(@identifier) == true 
-            return $scope.check_if_exist(@identifier, @@variables) 
+            return $scope.return_var(@identifier, @@variables) 
         end
     end
 end
@@ -261,7 +262,9 @@ class IfNode
 
     def eval
         $scope.start_scope
-        if @condition.eval
+        condition_val = @condition.eval 
+        #puts condition_val
+        if condition_val == true or condition_val == 'true'
             value = @statement_list.eval
             $scope.end_scope
             return value
@@ -270,6 +273,26 @@ class IfNode
     end
 end
 
+class ElseNode
+    attr_accessor :condition, :statement_list
+    def initialize(condition, statement_list1, statement_list2)
+        @condition = condition
+        @statement_list1 = statement_list1
+        @statement_list2 = statement_list2
+    end
+
+    def eval
+        $scope.start_scope
+        condition_val = @condition.eval 
+        if condition_val == true or condition_val == 'true'
+            value = @statement_list1.eval
+        else
+            value = @statement_list2.eval
+        end
+        $scope.end_scope
+        return value
+    end
+end
 
 
 
