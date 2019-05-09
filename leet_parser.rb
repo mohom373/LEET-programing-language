@@ -79,11 +79,11 @@ class Leet
 
             
             rule :assign do
-                #match(:var, '=', :expr){|var, _, expr|@@variables[var]= expr}
+                match(:var, '=', :expr){|var, _, expr| AssignNode.new(var, expr) }
                 
-                match(:var, :assign_op , :expr){|var, _, expr| }
+                #match(:var, :assign_op , :expr){|var, _, expr| }
             end
-
+=begin
             rule :assign_op do
                 match('*=') {|m| m }
                 match('/=') {|m| m }
@@ -91,12 +91,12 @@ class Leet
                 match('-=') {|m| m }
                 match('=') {|m| m }
             end
+=end
 
-=begin
             rule :repetition do 
                 match('while', '(', :comparison, ')', '{', :statement_list,'}'){|_, _, comparison, _, _, statement_list, _| WhileNode.new(comparison, statement_list)}
             end 
-=end
+
 
             rule :condition do
                 #match('if', '(', :expr, ')', '{', :statement_list, :midcond,'}') {|_, _, condition, _, _, statement_list1, _, statement_list2| ElseIfNode.new(condition, statement_list ) }

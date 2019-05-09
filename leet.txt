@@ -1,12 +1,4 @@
-1n7 y = 5
+b00l meh = 7ru3
 
-1f (15 > 3){
-    1n7 x = 10
-    pr1n7(f4l53 0r 7ru3);
-}
-3l53
-{
-  pr1n7('FEEEEEEEEEEEEEEEEEEEEEEL');
-} 
-
-pr1n7 (n07 7ru3 4nd 7ru3);
+meh = f4l53 0r 7ru3
+pr1n7(meh);
