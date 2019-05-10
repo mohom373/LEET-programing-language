@@ -10,7 +10,7 @@ $bool_table = {TrueClass => "b00l", FalseClass => "b00l"}
 
 #================================= Global functions
 
-
+=begin
 def type_checker(expr)
     if (expr.eval.is_a?(Integer) or expr.eval.is_a?(Float) or expr.eval.is_a?(String))
         object = FactorNode.new(expr.eval)
@@ -21,7 +21,7 @@ def type_checker(expr)
     end
     return object
 end
-
+=end
 
 
 #================================ Leet classes
@@ -85,7 +85,7 @@ class Scope_manager
         end
         
         if found == false
-            abort("Error: Variable doesnt exist")
+            abort("Abort --> Variable doesnt exist")
         end
     end
 
@@ -98,7 +98,7 @@ class Scope_manager
             end
         end
         
-        abort("Error: Variable doesnt exist")
+        abort("Abort --> Variable doesnt exist")
     end
 
     def declare_var(var_name, value)
@@ -263,14 +263,13 @@ end
 
 class DeclareNode
     attr_accessor :type, :var, :expr
-    def initialize(type, var, expr = nil)
+    def initialize(type, var, expr)
       @type = type
       @var = var
       @expr = expr
     end
 
     def eval()
-        
         
         if $bool_table.value?(@type) and (@expr.eval == true or @expr.eval == false)
             $scope_manager.declare_var(@var.identifier, @expr.eval)
@@ -279,10 +278,8 @@ class DeclareNode
         else
             abort("Abort --> Value is of a different type.")
         end
-
         #puts $scope_manager.variables
     
-
 =begin
         if @expr != nil
             value = @expr.eval
@@ -316,16 +313,14 @@ class AssignNode
     end
 
     def eval
-        #VarNode.new(@var)
         scope_man = $scope_manager.get_var(@var.identifier)
         if ($bool_table.include?(scope_man.class)) and (@expr.eval == true or @expr.eval == false)
             $scope_manager.re_assign(@var.identifier, @expr.eval)
-        elsif scope_man.class == @expr.eval.class
+        elsif scope_man.class == @expr.eval.class 
             $scope_manager.re_assign(@var.identifier, @expr.eval)
         else
             abort("Abort --> Value is of a different type.")
         end
-
 
 =begin
         index = $scope
@@ -348,21 +343,19 @@ class AssignNode
     end
 end
 
-
-
 #===================================== Iteration & condition
 
 class WhileNode
-    attr_accessor :comparison, :statement_list
-    def initialize(comparison, statement_list)
-        @comparison = comparison
+    attr_accessor :condition, :statement_list
+    def initialize(condition, statement_list)
+        @condition = condition
         @statement_list = statement_list
     end
 
     def eval
         #start_scope
         $scope_manager.add_scope
-        while @comparison.eval== true do
+        while @condition.eval== true or @condition.eval == '7ru3' do
             @statement_list.eval
         end
         $scope_manager.end_scope
@@ -378,7 +371,6 @@ class IfNode
     end
 
     def eval
-        #condition_val = @condition.eval 
         
         #puts condition_val
         if @condition.eval == true or @condition.eval == '7ru3'
@@ -403,13 +395,17 @@ class ElseNode
     def eval
         condition_val = @condition.eval 
         if condition_val == true or condition_val == '7ru3'
-            start_scope
+            #start_scope
+            $scope_manager.add_scope
             value = @statement_list1.eval
-            end_scope
+            $scope_manager.end_scope
+            #end_scope
         else
-            start_scope
+            #start_scope
+            $scope_manager.add_scope
             value = @statement_list2.eval
-            end_scope
+            $scope_manager.end_scope
+            #end_scope
         end
         return value
     end

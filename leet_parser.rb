@@ -1,39 +1,38 @@
 require './debug_fix_rdparse.rb'
-#require './rdparse'
 require './leet_node.rb'
 require 'test/unit'
 
 class Leet
-
     attr_reader :leetparser 
     def initialize 
         @leetparser = Parser.new("L33t lang") do
             token(/\s+/) # Ignore whitespaces
-            token(/\#.*/) # Ignore comments
+            token(/{--(.|\n)*--}/) # Ignore multiline comments
+            token(/--.*/) # Ignore single line comments
             token(/pr1n7/) {|x| x} # Match print function
-            token(/1n7/) {|x| x}
-            token(/fl047/) {|x| x}
-            token(/b00l/) {|x| x}
-            token(/57r1ng/) {|x| x}
-            token(/1f/) {|x| x}
-            token(/3l53/) {|x| x}
-            token(/n07/) {|x| x}
-            token(/7ru3/) {|x| x}
-            token(/f4l53/) {|x| x}
-            token(/4nd/) {|x| x}
-            token(/0r/) {|x| x}
+            token(/1n7/) {|x| x} # Int type
+            token(/fl047/) {|x| x} # Float type 
+            token(/b00l/) {|x| x} # Bool type
+            token(/57r1ng/) {|x| x} # String type
+            token(/1f/) {|x| x} # If
+            token(/3l53/) {|x| x} # Else
+            token(/n07/) {|x| x} # Not operator
+            token(/7ru3/) {|x| x} # True
+            token(/f4l53/) {|x| x} # False 
+            token(/4nd/) {|x| x} # And operator
+            token(/0r/) {|x| x} # Or operator
+            token(/wh1l3/) {|x| x} # While loop
             token(/\d+[.]\d+/) {|x| x.to_f} # Match float
             token(/\d+/) { |x| x.to_i } # Match integer
             token(/[a-zA-ZåäöÅÄÖ]+/) {|x| x.to_s} # Match chars
-            token(/"[^\"]*"/) {|m| m.to_s } # Double quote string
-            token(/'[^\"]*'/) {|m| m.to_s } # Single quote string
-            token(/while/) {|x| x}
-            token(/{/) {|x| x }
-            token(/}/) {|x| x }
-            token(/\=\=/) {|x| x}  
-            token(/\!\=/) {|x| x} 
-            token(/\>\=/) {|x| x}
-            token(/\<\=/) {|x| x}
+            token(/"[^\"]*"/) {|x| x.to_s } # Double quote string
+            token(/'[^\"]*'/) {|x| x.to_s } # Single quote string
+            token(/{/) {|x| x } # Block
+            token(/}/) {|x| x } # Block
+            token(/\=\=/) {|x| x} # Relational operator check
+            token(/\!\=/) {|x| x} # Relational operator check
+            token(/\>\=/) {|x| x} # Relational operator check
+            token(/\<\=/) {|x| x} # Relational operator check
             token(/./) {|x| x}
 
             start :program do
@@ -46,23 +45,21 @@ class Leet
             end
 
             rule :statement do 
-                  
-                match(:repetition)
+                match(:print_stmt) {|x| x}
                 # match(:return)
-                # match(:break)
                 # match(:function_definition)
                 # match(:function_call)
-                match(:print_stmt) {|x| x}
                 match(:declare) {|x| x}
 				match(:assign) {|x| x}
+                match(:repetition) {|x| x}
                 match(:condition) {|x| x}
                 match(:expr)  {|x| x}
             end
 
             rule :print_stmt do
-                match('pr1n7', '(', :expr, ')', ';') {|_, _, print_val ,_ ,_|PrintNode.new(print_val) }
+                match('pr1n7', '(', :expr, ')', ';') {|_, _, print_val ,_ ,_|PrintNode.new(print_val)}
                 
-                match('pr1n7', '(', :assign, ')', ';') {|_, _, print_val ,_ ,_|PrintNode.new(print_val) }
+                match('pr1n7', '(', :assign, ')', ';') {|_, _, print_val ,_ ,_|PrintNode.new(print_val)}
 
             end
               
@@ -70,57 +67,21 @@ class Leet
                 match(:type_name, :var, '=', :expr) {|type, var, _, expr| DeclareNode.new(type, var, expr)}
             end
 
-            rule :type_name do
-                match(/1n7/) {Integer}
-                match(/fl047/) {Float}
-                match(/b00l/) 
-                match(/57r1ng/) {String}
-            end
-
-            
             rule :assign do
-                match(:var, '=', :expr){|var, _, expr| AssignNode.new(var, expr) }
-                
-                #match(:var, :assign_op , :expr){|var, _, expr| }
+                match(:var, '=', :expr) {|var, _, expr| AssignNode.new(var, expr)}    
             end
-=begin
-            rule :assign_op do
-                match('*=') {|m| m }
-                match('/=') {|m| m }
-                match('+=') {|m| m }
-                match('-=') {|m| m }
-                match('=') {|m| m }
-            end
-=end
 
             rule :repetition do 
-                match('while', '(', :comparison, ')', '{', :statement_list,'}'){|_, _, comparison, _, _, statement_list, _| WhileNode.new(comparison, statement_list)}
+                match('wh1l3', '(', :logic, ')', '{', :statement_list,'}'){|_, _, condition, _, _, statement_list, _| WhileNode.new(condition, statement_list)}
             end 
 
-
             rule :condition do
-                #match('if', '(', :expr, ')', '{', :statement_list, :midcond,'}') {|_, _, condition, _, _, statement_list1, _, statement_list2| ElseIfNode.new(condition, statement_list ) }
-                
-
-
-                match('1f', '(', :expr, ')', '{', :statement_list, '}','3l53', 
+                match('1f', '(', :logic, ')', '{', :statement_list, '}','3l53', 
                 '{', :statement_list,'}') {|_, _, condition, _, _, statement_list1, _, _, _, statement_list2, _| ElseNode.new(condition, statement_list1, statement_list2) }
                 
-
-
-                match('1f', '(', :expr, ')', '{', :statement_list, '}') {|_, _, condition, _, _, statement_list, _| IfNode.new(condition, statement_list ) }
+                match('1f', '(', :logic, ')', '{', :statement_list, '}') {|_, _, condition, _, _, statement_list, _| IfNode.new(condition, statement_list ) }
             end
 
-=begin
-            rule :midcond do
-                match('elseif', '(', :expr, ')', '{', :statement_list, :endcond, '}' )
-                match('elseif', '(', :expr, ')', '{', :statement_list, '}' )
-            end
-
-            rule :endcond do
-                match('else', '{', :statement_list, '}')
-            end                
-=end
 			rule :expr do 
 				match(:expr, :arithm_op , :term) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
 				match(:term) 
@@ -149,6 +110,13 @@ class Leet
                 match(:string)
                 match(:bool)
                 match(:var)
+            end
+
+            rule :type_name do
+                match(/fl047/) {Float}
+                match(/1n7/) {Integer}
+                match(/57r1ng/) {String}
+                match(/b00l/) 
             end
 
 			rule :arithm_op do
@@ -180,7 +148,6 @@ class Leet
 				match('!=')
 			end
 
-
 			rule :float do
                 match('-', Float) {|_, float| FactorNode.new(-float)}
                 match(Float) {|float| FactorNode.new(float) } 
@@ -207,11 +174,9 @@ class Leet
 		end
 	end
 
-
     def done(str)
         ["quit","exit","bye",""].include?(str.chomp)
     end
-
 
     def start_with_file(file)
     	result = Array.new()
@@ -219,31 +184,6 @@ class Leet
       	result = @leetparser.parse(file)
       	result.eval
     end
-
-
-    
-    def run_file(filename)
-        code = "";
-        File.open(filename, "r") do |f|
-            f.each_line do |line|
-            code += line
-            end
-        end
-        puts "============> #{@leetparser.parse code}"
-    end
-
-
-    def roll
-        print "[LeetLang] "
-        str = gets
-        if done(str) then
-            puts "Bye."
-        else
-            puts "=> #{@leetparser.parse str}"
-            roll
-        end
-    end
-    
 
     def log(state = true)
       	if state
@@ -254,28 +194,10 @@ class Leet
     end
 end
 
-
-
 p = Leet.new
-p.log(true)
+p.log(false)
 p.start_with_file("leet.txt")
 
-#p.run_file("leet.txt")
-#p.roll
-
-
-
-=begin
-class TestFaculty < Test::Unit::TestCase
-
-  def test_logic1
-    reader = Leet.new
-    reader = reader.leetparser
-	assert_equal(reader.parse('1 + 2'), 3)
-	assert_equal(reader.parse('5 - 2'), 3)
-  end
-end
-=end
 
 
 
@@ -283,26 +205,3 @@ end
 
 
 
-
-
-
-
-
-
-=begin
-class TestFaculty < Test::Unit::TestCase
-
-  def test_logic1
-    reader = Leet.new
-    reader = reader.leetparser
-    assert_equal(reader.parse("a = true"), true)
-    assert_equal(reader.parse("b = false"), false)
-    assert_equal(reader.parse("a"), true)
-    assert_equal(reader.parse("b"), false)
-    assert_equal(reader.parse("a or b"), true)
-    assert_equal(reader.parse("a and b"), false)
-    assert_equal(reader.parse("not a"), false)
-    assert_equal(reader.parse("not b"), true)
-  end
-end
-=end

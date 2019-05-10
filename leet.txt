@@ -1,4 +1,21 @@
-b00l meh = 7ru3
 
-meh = f4l53 0r 7ru3
-pr1n7(meh);
+1n7 y = 10
+wh1l3(y >= 0)
+{
+    1f (y >= 5)
+    {
+        pr1n7("Hello World!");
+    }
+    3l53 
+    {
+        pr1n7("Bye World!");
+    }
+    y = y - 1
+}
+
+{--
+pr1n7("Bort kommenterat");
+pr1n7("Bort kommenterat");
+pr1n7("Bort kommenterat");
+--}
+
