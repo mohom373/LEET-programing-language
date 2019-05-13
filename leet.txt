@@ -1,8 +1,8 @@
 
 1n7 y = 10
-wh1l3(y >= 0)
+wh1l3(y > 0)
 {
-    1f (y >= 5)
+    1f (y > 5)
     {
         pr1n7("Hello World!");
     }

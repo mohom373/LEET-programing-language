@@ -25,6 +25,7 @@ class ScopeManager
         for i in 0...@variables.length
             if @variables[i].include?(var_name)
                 @variables[i][var_name] = value
+                puts @variables[i][var_name] = value
                 found = true
                 break
             end
@@ -74,7 +75,8 @@ class StmtListNode
     def eval
         @stmt_list.eval unless @stmt_list.nil?
         @stmt.eval
-        puts @stmt_list
+        puts "=================================="
+        puts @stmt_list 
     end
 end
 
@@ -304,57 +306,62 @@ end
 
 
 class FunctionSaver
-    def initialize(statement_list)
+    def initialize(parameter_list, statement_list)
+        @parameter_list = parameter_list
         @statement_list = statement_list
-        @statement_list
     end
     
-    def eval
+    def eval(argument_list)
         $scope_manager.add_scope
-        @statement_list.eval
-        $scope_manager.end_scope
+        # Iterara över parameterlistan och argumentlistan samtidigt 
+        # för att checka ifall objekten stämmer överens
+        # isåfall gör en declare_var
+        if (argument_list == nil or @parameter_list == nil) and (argument_list != nil or @parameter_list != nil)
+            abort ("Abort --> Antingen saknas parametrar eller argument!")
+        end
+        if argument_list != nil and @parameter_list != nil
+            if argument_list.length != @parameter_list.length 
+                abort ("Abort --> Size doesnt match broooo")
+            end
+            $scope_manager.add_scope
+
+            length = argument_list.length
+            counter = 0
+            while counter < length do
+                if $scope_manager.get_var(argument_list[counter]).class == VarNode
+                end
+            end
+
+
+            @statement_list.eval
+            $scope_manager.end_scope
     end
 end
 
 
 class FunctionDefNode
-    def initialize(func_name, statement_list)
+    def initialize(func_name, parameter_list, statement_list)
         @func_name = func_name
+        @parameter_list = parameter_list
         @statement_list = statement_list
     end
 
     def eval
-        #$scope_manager.add_scope
-
-=begin
-        if $bool_table.value?(@type) and (@statement_list.eval == true or @statement_list.eval == false)
-            $scope_manager.declare_var(@func_name.identifier, @statement_list.eval)
-        elsif @type == @expr.eval.class
-            $scope_manager.declare_var(@func_name.identifier, @statement_list.eval)
-        else
-            abort("Abort --> Value is of a different type.")
-        end
-=end
-        func_run = FunctionSaver.new(@statement_list)      
+    
+        func_run = FunctionSaver.new(@parameter_list, @statement_list)      
 
         $scope_manager.declare_var(@func_name.identifier, func_run)
-=begin   
-        $scope_manager.declare_func(@func_name.identifier, @statement_list)
-=end
-        #$scope_manager.end_scope
     end        
 end
 
-
-
 class FunctionCallNode
-    def initialize(func_name)
+    def initialize(func_name, argument_list)
         @func_name = func_name
     end
 
     def eval
-        puts "================================================="
+        #puts "================================================="
         var = $scope_manager.get_var(@func_name.identifier)
-        var.eval
+        var.eval(argument_list)
     end
 end

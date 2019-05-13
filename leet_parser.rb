@@ -65,12 +65,33 @@ class Leet
             end
               
             rule :function_definition do
-                match('func', :var, '(', ')', '{', :statement_list, '}') { |_, function_name, _, _, _, statement_list, _| FunctionDefNode.new(function_name, statement_list)}
+                match('func', :var, '(', :parameter_list,')', '{', :statement_list, '}') { |_, function_name, _, parameter_list, _, statement_list, _| FunctionDefNode.new(function_name, parameter_list , statement_list)}
+
+                match('func', :var, '(', ')', '{', :statement_list, '}') { |_, function_name, _, _, _, statement_list, _| FunctionDefNode.new(function_name, nil ,statement_list)}
+            end
+
+            rule :parameter_list do
+                match(:parameter_list, ',' ,:parameter) {|parameter_list, _, parameter| [parameter_list] += parameter }
+                match(:parameter)
+            end
+
+            rule :parameter do 
+                match(:type_name, :var) {|type_name, var| [type_name, var] }
             end
 
             rule :function_call do
-                match(:var, '(', ')', ';') {|function_name| FunctionCallNode.new(function_name)}
+                match(:var, '(', :argument_list, ')', ';') {|function_name| FunctionCallNode.new(function_name, argument_list)}
+                
+                match(:var, '(', ')', ';') {|function_name| FunctionCallNode.new(function_name, nil)}
             end
+
+            rule :argument_list do 
+                match(:argument_list, ',', :argument) {|argument_list, _, argument| [argument_list] += argument}
+                match(:argument) 
+            end
+
+            rule :argument do 
+                match(:expr) {|expression| [expression]}
 
             rule :declare do
                 match(:type_name, :var, '=', :expr) {|type, var, _, expr| DeclareNode.new(type, var, expr)}
@@ -206,8 +227,8 @@ end
 
 p = Leet.new
 p.log(false)
-#p.start_with_file("leet.txt")
-p.start_with_file("leet_test2.txt")
+p.start_with_file("leet.txt")
+#p.start_with_file("leet_test2.txt")
 
 
 
