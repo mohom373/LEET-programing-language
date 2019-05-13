@@ -1,82 +1,28 @@
 
-#$variables = [{}] 
-$functions = {}
-$function_param = {} 
-$scope = 0
+#$functions = {}
+#$function_param = {} 
 $return = nil 
-
 $bool_table = {TrueClass => "b00l", FalseClass => "b00l"}
-#@@type_value = {"57r1ng" => "", "1n7" => 0, "fl0a7" => 0.0, "b00l" => "true", "l157" => []}
-
-#================================= Global functions
-
-=begin
-def type_checker(expr)
-    if (expr.eval.is_a?(Integer) or expr.eval.is_a?(Float) or expr.eval.is_a?(String))
-        object = FactorNode.new(expr.eval)
-    elsif(expr_in.eval == true)
-        object= BOOL_C.new(expr_in.eval)
-    elsif(expr_in.eval == false)
-        object= BOOL_C.new(expr_in.eval)
-    end
-    return object
-end
-=end
-
 
 #================================ Leet classes
-
-def start_scope
-    $scope += 1
-    $variables.push({})
-end
-
-def end_scope
-    $variables.pop
-    $scope -= 1
-    if $scope < 0
-        abort("ABOOOOOOOOOOOOOOORT")
-    end
-end
-
-def return_var(var, table)
-    if table == $function_param
-        table[var]
-    elsif table == $variables
-        index = $scope
-        while( index >= 0 )
-            if $variables[index][var] != nil
-                return $variables[index][var]
-            end
-            index -= 1
-        end
-        if $variables[0][var] == nil
-            abort("Abort --> The variable \'#{var}\' doesn't exist!")
-        end
-    end
-end
-  
-class Scope_manager
+ 
+class ScopeManager
     attr_accessor :variables
     def initialize
         @variables = [{}] 
-        #puts "HEHFHEHFEHFIHEIFHEIFH"
     end
 
     def add_scope
-        #puts "=============================================0"
         @variables.unshift({})
     end
 
     def end_scope
-        #puts "ENNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNND"
-    
         @variables.shift()
     end
 
     def re_assign(var_name, value)
         found = false
-        for i in 0..@variables.length
+        for i in 0...@variables.length
             if @variables[i].include?(var_name)
                 @variables[i][var_name] = value
                 found = true
@@ -85,36 +31,39 @@ class Scope_manager
         end
         
         if found == false
-            abort("Abort --> Variable doesnt exist")
+            abort("Abort --> Variable doesn't exist")
         end
     end
 
     def get_var(var_name)
-        for i in 0..@variables.length
-            #puts @variables[i].class
+        found = false 
+        for i in 0...@variables.length
+            #puts i
+            #puts @variables[i]
             if @variables[i].include?(var_name)
                 return @variables[i][var_name]
-                
+                found = true
+                break
             end
         end
-        
-        abort("Abort --> Variable doesnt exist")
+        if found == false
+            abort("Abort --> Variable doesn't exist")
+        end
     end
 
     def declare_var(var_name, value)
         @variables[0][var_name] = value
     end
+
+=begin
+    def declare_func(func_name, value)
+        @functions = Hash.new
+        @functions[func_name] = value
+    end
+=end
 end
                 
-$scope_manager = Scope_manager.new
-
-
-        
-
-        
-
-
-
+$scope_manager = ScopeManager.new
 
 class StmtListNode
     attr_accessor :stmt_list, :stmt
@@ -125,9 +74,12 @@ class StmtListNode
     def eval
         @stmt_list.eval unless @stmt_list.nil?
         @stmt.eval
+        puts @stmt_list
     end
 end
+
 #========================================== CALCULATIONS
+
 class ArithmNode
     attr_accessor :lhs, :op, :rhs
     def initialize(lhs, op, rhs)
@@ -150,7 +102,6 @@ class CompNode
     end
 
     def eval
-        #puts BoolNode.new(instance_eval("#{@lhs.eval} #{@op} #{@rhs.eval}")).eval
         return BoolNode.new(instance_eval("#{@lhs.eval} #{@op} #{@rhs.eval}")).eval
     end
 end
@@ -188,7 +139,9 @@ class NotLogicNode
         return BoolNode.new(instance_eval("#{@op} #{@rhs.eval}")).eval
     end
 end 
+
 #========================================== Values
+
 class FactorNode
     attr_accessor :value
     def initialize(value)
@@ -215,7 +168,9 @@ class BoolNode
         return @value
     end
 end
+
 #========================================== Print and Return
+
 class PrintNode
     attr_accessor :value
     def initialize(value)
@@ -246,17 +201,7 @@ class VarNode
     end
 
     def eval
-
         return $scope_manager.get_var(@identifier)
-=begin
-        index = $scope
-        #if $function_param.has_key?(@identifier) == true
-            #return Scope.return_var(@identifier, $function_param) 
-        #else 
-        if $variables[index].has_key?(@identifier) == true 
-            return return_var(@identifier, $variables) 
-        end
-=end
     end
 
 end
@@ -269,8 +214,7 @@ class DeclareNode
       @expr = expr
     end
 
-    def eval()
-        
+    def eval
         if $bool_table.value?(@type) and (@expr.eval == true or @expr.eval == false)
             $scope_manager.declare_var(@var.identifier, @expr.eval)
         elsif @type == @expr.eval.class
@@ -278,32 +222,8 @@ class DeclareNode
         else
             abort("Abort --> Value is of a different type.")
         end
-        #puts $scope_manager.variables
-    
-=begin
-        if @expr != nil
-            value = @expr.eval
-        end
-        #index = $scope
-    
-        if $variables[index].has_key?(@var.identifier)
-            abort("Abort --> Variable exists already!")
-        else 
-            if ($bool_table.value?(@type)) and (value == true or value == false)
-                $variables[index][@var.identifier] = value
-            else
-                if value.class == @type
-                    $variables[index][@var.identifier] = value
-                else
-                    abort("Abort --> Value is of a different type.")
-                end
-            end
-        #puts $variables
-        end
-=end
     end
 end
-
 
 class AssignNode
     attr_accessor :var, :expr
@@ -321,25 +241,6 @@ class AssignNode
         else
             abort("Abort --> Value is of a different type.")
         end
-
-=begin
-        index = $scope
-        value = type_checker(@expr)
-
-        while( index >=0) do
-            if $variables[index][@var.identifier] != nil
-                data_type = $variables[index][@var.identifier].class
-                if (data_type == @expr.eval.class )
-                    $variables[index][@var.identifier] = @expr.eval
-                else
-                    abort("FEEEEEEEEEEEEEEEEEEEEEEEL DATAT TYPPPPEPEE")
-                end
-
-            end
-            index -= 1
-        end
-        #puts $variables
-=end
     end
 end
 
@@ -353,13 +254,11 @@ class WhileNode
     end
 
     def eval
-        #start_scope
         $scope_manager.add_scope
-        while @condition.eval== true or @condition.eval == '7ru3' do
+        while @condition.eval == true 
             @statement_list.eval
         end
         $scope_manager.end_scope
-        #end_scope
     end
 end
 
@@ -371,13 +270,9 @@ class IfNode
     end
 
     def eval
-        
-        #puts condition_val
-        if @condition.eval == true or @condition.eval == '7ru3'
-            #start_scope
+        if @condition.eval == true 
             $scope_manager.add_scope
             value = @statement_list.eval
-            #end_scope
             $scope_manager.end_scope
             return value
         end
@@ -394,25 +289,72 @@ class ElseNode
 
     def eval
         condition_val = @condition.eval 
-        if condition_val == true or condition_val == '7ru3'
-            #start_scope
+        if condition_val == true 
             $scope_manager.add_scope
             value = @statement_list1.eval
             $scope_manager.end_scope
-            #end_scope
         else
-            #start_scope
             $scope_manager.add_scope
             value = @statement_list2.eval
             $scope_manager.end_scope
-            #end_scope
         end
         return value
     end
 end
 
 
+class FunctionSaver
+    def initialize(statement_list)
+        @statement_list = statement_list
+        @statement_list
+    end
+    
+    def eval
+        $scope_manager.add_scope
+        @statement_list.eval
+        $scope_manager.end_scope
+    end
+end
+
+
+class FunctionDefNode
+    def initialize(func_name, statement_list)
+        @func_name = func_name
+        @statement_list = statement_list
+    end
+
+    def eval
+        #$scope_manager.add_scope
+
+=begin
+        if $bool_table.value?(@type) and (@statement_list.eval == true or @statement_list.eval == false)
+            $scope_manager.declare_var(@func_name.identifier, @statement_list.eval)
+        elsif @type == @expr.eval.class
+            $scope_manager.declare_var(@func_name.identifier, @statement_list.eval)
+        else
+            abort("Abort --> Value is of a different type.")
+        end
+=end
+        func_run = FunctionSaver.new(@statement_list)      
+
+        $scope_manager.declare_var(@func_name.identifier, func_run)
+=begin   
+        $scope_manager.declare_func(@func_name.identifier, @statement_list)
+=end
+        #$scope_manager.end_scope
+    end        
+end
 
 
 
+class FunctionCallNode
+    def initialize(func_name)
+        @func_name = func_name
+    end
 
+    def eval
+        puts "================================================="
+        var = $scope_manager.get_var(@func_name.identifier)
+        var.eval
+    end
+end

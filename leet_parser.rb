@@ -27,6 +27,7 @@ class Leet
             token(/[a-zA-ZåäöÅÄÖ]+/) {|x| x.to_s} # Match chars
             token(/"[^\"]*"/) {|x| x.to_s } # Double quote string
             token(/'[^\"]*'/) {|x| x.to_s } # Single quote string
+            token(/func/)
             token(/{/) {|x| x } # Block
             token(/}/) {|x| x } # Block
             token(/\=\=/) {|x| x} # Relational operator check
@@ -47,8 +48,8 @@ class Leet
             rule :statement do 
                 match(:print_stmt) {|x| x}
                 # match(:return)
-                # match(:function_definition)
-                # match(:function_call)
+                match(:function_definition) {|x| x}
+                match(:function_call) {|x| x}
                 match(:declare) {|x| x}
 				match(:assign) {|x| x}
                 match(:repetition) {|x| x}
@@ -63,6 +64,14 @@ class Leet
 
             end
               
+            rule :function_definition do
+                match('func', :var, '(', ')', '{', :statement_list, '}') { |_, function_name, _, _, _, statement_list, _| FunctionDefNode.new(function_name, statement_list)}
+            end
+
+            rule :function_call do
+                match(:var, '(', ')', ';') {|function_name| FunctionCallNode.new(function_name)}
+            end
+
             rule :declare do
                 match(:type_name, :var, '=', :expr) {|type, var, _, expr| DeclareNode.new(type, var, expr)}
             end
@@ -105,6 +114,7 @@ class Leet
                         
             rule :factor do 
                 match('(', :expr, ')') {|_, expr, _| expr}  
+                match(:function_call)
                 match(:float) 
                 match(:integer)
                 match(:string)
@@ -196,7 +206,8 @@ end
 
 p = Leet.new
 p.log(false)
-p.start_with_file("leet.txt")
+#p.start_with_file("leet.txt")
+p.start_with_file("leet_test2.txt")
 
 
 

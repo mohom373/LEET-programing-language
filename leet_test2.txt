@@ -1,0 +1,14 @@
+1n7 y = 20
+func test ()
+{
+    1n7 x = 10 
+    pr1n7(x);
+    x = x + 15
+    pr1n7(x);
+}
+
+
+    1n7 x = 10 
+    pr1n7(x);
+    x = x + 15
+    pr1n7(x);
