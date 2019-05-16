@@ -1,9 +1,8 @@
-func test (x)
+func test (<1n7> a, <fl047> x)
 {
-    -- pr1n7(x);
-    x = x + 15
-    -- pr1n7(x);
+    a = a + 1
+    pr1n7 (a);
+    x = x * 5.5
+    pr1n7(x);
 }
-
-test(10);
-
+test(0, 11.7);

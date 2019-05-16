@@ -47,7 +47,7 @@ class Leet
 
             rule :statement do 
                 match(:print_stmt) {|x| x}
-                # match(:return)
+                #match(:return)
                 match(:function_definition) {|x| x}
                 match(:function_call) {|x| x}
                 match(:declare) {|x| x}
@@ -65,36 +65,47 @@ class Leet
             end
               
             rule :function_definition do
-                match('func', :var, '(', :parameter_list,')', '{', :statement_list, '}') { |_, function_name, _, parameter_list, _, statement_list, _| FunctionDefNode.new(function_name, parameter_list , statement_list)}
+                match('func', :var, '(', :parameter_list,')', '{', :statement_list, '}') { |_, function_name, _, parameter_list, _, _, statement_list, _| FunctionDefNode.new(function_name, parameter_list , statement_list)}
 
-                match('func', :var, '(', ')', '{', :statement_list, '}') { |_, function_name, _, _, _, statement_list, _| FunctionDefNode.new(function_name, nil ,statement_list)}
+                match('func', :var, '(', ')', '{', :statement_list, '}') { |_, function_name, _, _, _, statement_list, _| FunctionDefNode.new(function_name, [] ,statement_list)}
             end
 
             rule :parameter_list do
-                match(:parameter_list, ',' ,:parameter) {|parameter_list, _, parameter| [parameter_list] += parameter }
-                match(:parameter)
+                match(:parameter_list, ',' ,:parameter) {|parameter_list, _, parameter| 
+                    if parameter[0] != Array
+                        parameter_list.concat([parameter])
+                    else 
+                        parameter_list.concat(parameter)
+                    end}
+                match(:parameter) {|parameter| [parameter]}
             end
 
             rule :parameter do 
-                match(:type_name, :var) {|type_name, var| [type_name, var] }
+                match('<', :type_name, '>', :var) {|_, type_name, _, var| [type_name, var.identifier] }
             end
 
             rule :function_call do
-                match(:var, '(', :argument_list, ')', ';') {|function_name| FunctionCallNode.new(function_name, argument_list)}
+                match(:var, '(', :argument_list, ')', ';') {|function_name, _, argument_list, _, _| FunctionCallNode.new(function_name, argument_list)}
                 
-                match(:var, '(', ')', ';') {|function_name| FunctionCallNode.new(function_name, nil)}
+                match(:var, '(', ')', ';') {|function_name| FunctionCallNode.new(function_name, [])}
             end
 
             rule :argument_list do 
-                match(:argument_list, ',', :argument) {|argument_list, _, argument| [argument_list] += argument}
+                match(:argument_list, ',', :argument) {|argument_list, _, argument| 
+                    if argument.class != Array
+                        argument_list.concat(argument)
+                    else
+                        argument_list.concat(argument)
+                    end}
                 match(:argument) 
             end
 
             rule :argument do 
                 match(:expr) {|expression| [expression]}
+            end
 
             rule :declare do
-                match(:type_name, :var, '=', :expr) {|type, var, _, expr| DeclareNode.new(type, var, expr)}
+                match('<', :type_name, '>', :var, '=', :expr) {|_,type, _, var, _, expr| DeclareNode.new(type, var, expr)}
             end
 
             rule :assign do
@@ -227,13 +238,6 @@ end
 
 p = Leet.new
 p.log(false)
-p.start_with_file("leet.txt")
+#p.start_with_file("leet.txt")
 #p.start_with_file("leet_test2.txt")
-
-
-
-
-
-
-
-
+p.start_with_file("leet_test3.txt")

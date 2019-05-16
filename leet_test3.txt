@@ -1,0 +1,8 @@
+func test (<b00l> a)
+{
+    pr1n7(a);
+    a = n07 (7ru3 0r f4l53)
+    pr1n7(a);
+}
+
+test(7ru3);

@@ -25,14 +25,14 @@ class ScopeManager
         for i in 0...@variables.length
             if @variables[i].include?(var_name)
                 @variables[i][var_name] = value
-                puts @variables[i][var_name] = value
+                #puts @variables[i][var_name] = value
                 found = true
                 break
             end
         end
         
         if found == false
-            abort("Abort --> Variable doesn't exist")
+            abort("Abort --> Variable doesn't exist 1")
         end
     end
 
@@ -48,7 +48,7 @@ class ScopeManager
             end
         end
         if found == false
-            abort("Abort --> Variable doesn't exist")
+            abort("Abort --> Variable doesn't exist 2")
         end
     end
 
@@ -75,8 +75,7 @@ class StmtListNode
     def eval
         @stmt_list.eval unless @stmt_list.nil?
         @stmt.eval
-        puts "=================================="
-        puts @stmt_list 
+        #puts @stmt_list 
     end
 end
 
@@ -311,33 +310,48 @@ class FunctionSaver
         @statement_list = statement_list
     end
     
+    #def eval
     def eval(argument_list)
-        $scope_manager.add_scope
+        #$scope_manager.add_scope
         # Iterara över parameterlistan och argumentlistan samtidigt 
         # för att checka ifall objekten stämmer överens
         # isåfall gör en declare_var
+
         if (argument_list == nil or @parameter_list == nil) and (argument_list != nil or @parameter_list != nil)
             abort ("Abort --> Antingen saknas parametrar eller argument!")
         end
+        #print "#{@parameter_list} \n"
+        #print "#{argument_list}\n"
+
+
+        param_list_length = @parameter_list.length 
+        argument_list_length = argument_list.length
+
         if argument_list != nil and @parameter_list != nil
-            if argument_list.length != @parameter_list.length 
+            if argument_list_length != param_list_length 
                 abort ("Abort --> Size doesnt match broooo")
+                #print "#{param_list_length}\n"
+                #print "#{argument_list_length}\n"
             end
             $scope_manager.add_scope
-
-            length = argument_list.length
-            counter = 0
-            while counter < length do
-                if $scope_manager.get_var(argument_list[counter]).class == VarNode
+            counter = 0 
+            while counter < argument_list_length do
+                argument_list.each do |arg|
+                    puts @parameter_list[counter][0]
+                    if ($bool_table.value?(arg.value.class) == $bool_table.key?(@parameter_list[counter][0])) or (arg.value.class == @parameter_list[counter][0])
+                        test_var = $scope_manager.declare_var(@parameter_list[counter][1], arg.value) 
+                        counter += 1   
+                    end
                 end
+                @statement_list.eval
+                $scope_manager.end_scope
             end
-
-
+        elsif argument_list == nil and @parameter_list == nil
             @statement_list.eval
             $scope_manager.end_scope
+        end
     end
 end
-
 
 class FunctionDefNode
     def initialize(func_name, parameter_list, statement_list)
@@ -347,21 +361,32 @@ class FunctionDefNode
     end
 
     def eval
-    
-        func_run = FunctionSaver.new(@parameter_list, @statement_list)      
-
-        $scope_manager.declare_var(@func_name.identifier, func_run)
+        #puts "Inne i FUNCTION DEFINITTIONNNNNNNNN"
+        func_saver = FunctionSaver.new(@parameter_list, @statement_list)      
+        #puts @statement_list
+        $scope_manager.declare_var(@func_name.identifier, func_saver)
     end        
 end
 
 class FunctionCallNode
     def initialize(func_name, argument_list)
         @func_name = func_name
+        @argument_list = argument_list
     end
 
     def eval
-        #puts "================================================="
+        #puts "INNNE U FUNCTION CALL---------------------------"
         var = $scope_manager.get_var(@func_name.identifier)
-        var.eval(argument_list)
+        var.eval(@argument_list)
     end
 end
+
+
+
+
+
+
+
+
+=begin
+=end
