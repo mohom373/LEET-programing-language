@@ -1,8 +1,17 @@
-func test (<b00l> a)
+func test (<1n7> y)
 {
-    pr1n7(a);
-    a = n07 (7ru3 0r f4l53)
-    pr1n7(a);
+    wh1l3(y > 0)
+    {
+        1f (y > 5)
+        {
+            pr1n7("Hello World!");
+        }
+        3l53 
+        {
+            pr1n7("Bye World!");
+        }
+        y = y - 1
+    }   
 }
 
-test(7ru3);
+test(10);

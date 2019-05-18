@@ -1,7 +1,4 @@
 
-#$functions = {}
-#$function_param = {} 
-$return = nil 
 $bool_table = {TrueClass => "b00l", FalseClass => "b00l"}
 
 #================================ Leet classes
@@ -25,7 +22,6 @@ class ScopeManager
         for i in 0...@variables.length
             if @variables[i].include?(var_name)
                 @variables[i][var_name] = value
-                #puts @variables[i][var_name] = value
                 found = true
                 break
             end
@@ -39,8 +35,6 @@ class ScopeManager
     def get_var(var_name)
         found = false 
         for i in 0...@variables.length
-            #puts i
-            #puts @variables[i]
             if @variables[i].include?(var_name)
                 return @variables[i][var_name]
                 found = true
@@ -56,12 +50,6 @@ class ScopeManager
         @variables[0][var_name] = value
     end
 
-=begin
-    def declare_func(func_name, value)
-        @functions = Hash.new
-        @functions[func_name] = value
-    end
-=end
 end
                 
 $scope_manager = ScopeManager.new
@@ -221,7 +209,7 @@ class DeclareNode
         elsif @type == @expr.eval.class
             $scope_manager.declare_var(@var.identifier, @expr.eval)
         else
-            abort("Abort --> Value is of a different type.")
+            abort("Abort --> Value is of a different type. 1")
         end
     end
 end
@@ -240,7 +228,7 @@ class AssignNode
         elsif scope_man.class == @expr.eval.class 
             $scope_manager.re_assign(@var.identifier, @expr.eval)
         else
-            abort("Abort --> Value is of a different type.")
+            abort("Abort --> Value is of a different type. 2")
         end
     end
 end
@@ -303,52 +291,46 @@ class ElseNode
     end
 end
 
-
 class FunctionSaver
     def initialize(parameter_list, statement_list)
         @parameter_list = parameter_list
         @statement_list = statement_list
     end
     
-    #def eval
     def eval(argument_list)
-        #$scope_manager.add_scope
         # Iterara över parameterlistan och argumentlistan samtidigt 
         # för att checka ifall objekten stämmer överens
         # isåfall gör en declare_var
 
-        if (argument_list == nil or @parameter_list == nil) and (argument_list != nil or @parameter_list != nil)
-            abort ("Abort --> Antingen saknas parametrar eller argument!")
+        if (argument_list == [] or @parameter_list == []) and (argument_list != [] or @parameter_list != [])
+            abort ("Abort --> Either a paramater or an argument is missing!")
         end
-        #print "#{@parameter_list} \n"
-        #print "#{argument_list}\n"
 
-
-        param_list_length = @parameter_list.length 
+        paramater_list_length = @parameter_list.length 
         argument_list_length = argument_list.length
 
-        if argument_list != nil and @parameter_list != nil
-            if argument_list_length != param_list_length 
-                abort ("Abort --> Size doesnt match broooo")
-                #print "#{param_list_length}\n"
-                #print "#{argument_list_length}\n"
+        if argument_list == [] and @parameter_list == []
+            $scope_manager.add_scope
+            @statement_list.eval
+            $scope_manager.end_scope
+        elsif argument_list != [] and @parameter_list != []
+            if argument_list_length != paramater_list_length 
+                abort ("Abort --> Number of paramters and arguments dont match!")
             end
             $scope_manager.add_scope
             counter = 0 
             while counter < argument_list_length do
                 argument_list.each do |arg|
-                    puts @parameter_list[counter][0]
-                    if ($bool_table.value?(arg.value.class) == $bool_table.key?(@parameter_list[counter][0])) or (arg.value.class == @parameter_list[counter][0])
+                    if ($bool_table.key?(arg.value.class) and $bool_table.value?(@parameter_list[counter][0])) or (arg.value.class == @parameter_list[counter][0])
                         test_var = $scope_manager.declare_var(@parameter_list[counter][1], arg.value) 
-                        counter += 1   
+                        counter += 1
+                    else 
+                        abort("Abort --> argument type doesn't match with parameter type!")   
                     end
                 end
                 @statement_list.eval
                 $scope_manager.end_scope
             end
-        elsif argument_list == nil and @parameter_list == nil
-            @statement_list.eval
-            $scope_manager.end_scope
         end
     end
 end
@@ -361,9 +343,7 @@ class FunctionDefNode
     end
 
     def eval
-        #puts "Inne i FUNCTION DEFINITTIONNNNNNNNN"
         func_saver = FunctionSaver.new(@parameter_list, @statement_list)      
-        #puts @statement_list
         $scope_manager.declare_var(@func_name.identifier, func_saver)
     end        
 end
@@ -375,18 +355,7 @@ class FunctionCallNode
     end
 
     def eval
-        #puts "INNNE U FUNCTION CALL---------------------------"
         var = $scope_manager.get_var(@func_name.identifier)
         var.eval(@argument_list)
     end
 end
-
-
-
-
-
-
-
-
-=begin
-=end
