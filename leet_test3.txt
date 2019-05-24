@@ -16,4 +16,3 @@ func test ()
 }
 
 test();
-y = 15

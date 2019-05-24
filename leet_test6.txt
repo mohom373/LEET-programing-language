@@ -1,0 +1,9 @@
+func multiply(<1n7> x, <1n7> y)
+{
+    r37urn(x * y);
+    pr1n7(x);
+}
+
+<1n7> z = multiply(2, 50);
+
+pr1n7(z);

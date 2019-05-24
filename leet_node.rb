@@ -40,6 +40,7 @@ class ScopeManager
                 break
             end
         end
+
         if found == false
             abort("Abort --> Variable with the name '#{var_name}' doesn't exist ")
         end
@@ -48,7 +49,6 @@ class ScopeManager
     def declare_var(var_name, value)
         @variables[0][var_name] = value
     end
-
 end
                 
 $scope_manager = ScopeManager.new
@@ -59,7 +59,6 @@ class StmtListNode
         @stmt_list = stmt_list
     end
     def eval
-        #puts @stmt_list.inspect
         @stmt_list.each do |stmt|
             stmt.eval
         end
@@ -182,6 +181,7 @@ class ReturnNode
 end
 
 #========================================== VARIABLES
+
 class VarNode 
     attr_accessor :identifier
     def initialize(var)
@@ -197,16 +197,17 @@ end
 class DeclareNode
     attr_accessor :type, :var, :expr
     def initialize(type, var, expr)
-      @type = type
-      @var = var
-      @expr = expr
+        @type = type
+        @var = var
+        @expr = expr
     end
 
     def eval
-        if $bool_table.value?(@type) and (@expr.eval == true or @expr.eval == false)
-            $scope_manager.declare_var(@var.identifier, @expr.eval)
-        elsif @type == @expr.eval.class
-            $scope_manager.declare_var(@var.identifier, @expr.eval)
+        return_val = @expr.eval
+        if $bool_table.value?(@type) and (return_val == true or return_val == false)
+            $scope_manager.declare_var(@var.identifier, return_val)
+        elsif @type == return_val.class
+            $scope_manager.declare_var(@var.identifier, return_val)
         else
             abort("Abort --> Value is of a different type.")
         end
@@ -262,6 +263,7 @@ class IfNode
     def eval
         if @condition.eval == true 
             $scope_manager.add_scope
+            value = 0
             @statement_list.each do |statement|
                 value = statement.eval
             end
@@ -317,13 +319,10 @@ class FunctionSaver
                 if statement.class == ReturnNode
                     return statement.eval
                     break
-                    #$scope_manager.end_scope
                 else
                     statement.eval
-                    #$scope_manager.end_scope
                 end
             end
-
             $scope_manager.end_scope
         elsif argument_list != [] and @parameter_list != []
             if argument_list_length != paramater_list_length 
@@ -331,25 +330,22 @@ class FunctionSaver
             end
             $scope_manager.add_scope
             counter = 0 
-            while counter < argument_list_length do
-                argument_list.each do |arg|
-                    if ($bool_table.key?(arg.value.class) and $bool_table.value?(@parameter_list[counter][0])) or (arg.value.class == @parameter_list[counter][0])
-                        test_var = $scope_manager.declare_var(@parameter_list[counter][1], arg.value) 
-                        counter += 1
-                    else 
-                        abort("Abort --> argument type doesn't match with parameter type!")   
-                    end
+            
+            @parameter_list.zip(argument_list).each do |pair|
+                parameter_val = pair[1].eval
+                if (pair[0][0] == parameter_val.class) or (TrueClass == parameter_val.class or FalseClass == parameter_val.class )
+                    $scope_manager.declare_var(pair[0][1], parameter_val) 
+                else 
+                    abort("Abort --> argument type doesn't match with parameter type!")   
                 end
             end
-                
+            
             @statement_list.each do |statement|
                 if statement.class == ReturnNode
                     return statement.eval
                     break
-                    #$scope_manager.end_scope
                 else
                     statement.eval
-                    #$scope_manager.end_scope
                 end
             end   
             $scope_manager.end_scope

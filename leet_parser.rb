@@ -40,13 +40,7 @@ class Leet
             start :program do
                 match(:statement_list) {|stmt_list| StmtListNode.new(stmt_list)}
             end
-=begin
-            rule :statement_list do 
-                match(:statement_list, :statement) { |stmt_list, stmt| StmtListNode.new(stmt_list, stmt) }
-                match(:statement) { |stmt| stmt }
-            end
-=end
-            
+
             rule :statement_list do 
                 match(:statement_list, :statement) {|statement_list, statement| statement_list.concat(statement)}
                 match(:statement) { |stmt| stmt }
@@ -66,9 +60,6 @@ class Leet
 
             rule :print_stmt do
                 match('pr1n7', '(', :expr, ')', ';') {|_, _, print_val, _ , _|PrintNode.new(print_val)}
-                
-                #match('pr1n7', '(', :assign, ')', ';') {|_, _, print_val, _, _|PrintNode.new(print_val)}
-
             end
               
             rule :return do
@@ -254,3 +245,4 @@ p.log(false)
 #p.start_with_file("leet_test3.txt")
 #p.start_with_file("leet_test4.txt")
 #p.start_with_file("leet_test5.txt")
+#p.start_with_file("leet_test6.txt")
