@@ -1,0 +1,24 @@
+func one(<57r1ng> x)
+{
+    pr1n7(x);
+}
+
+func two(<1n7> y)
+{
+    wh1l3(y > 0)
+    {
+        1f (y > 5)
+        {
+            one("Heeeeeeeeeeeeeeeej");
+        }
+        3l53 
+        {
+            one("Hejdååååååååååååå");
+        }
+        y = y - 1
+    }
+}
+
+two(10);
+
+pr1n7(y);

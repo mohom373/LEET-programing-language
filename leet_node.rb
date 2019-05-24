@@ -1,4 +1,3 @@
-
 $bool_table = {TrueClass => "b00l", FalseClass => "b00l"}
 
 #================================ Leet classes
@@ -28,7 +27,7 @@ class ScopeManager
         end
         
         if found == false
-            abort("Abort --> Variable doesn't exist 1")
+            abort("Abort --> Cannot reassign variable '#{var_name}' because it doesn't exist ")
         end
     end
 
@@ -42,7 +41,7 @@ class ScopeManager
             end
         end
         if found == false
-            abort("Abort --> Variable doesn't exist 2")
+            abort("Abort --> Variable with the name '#{var_name}' doesn't exist ")
         end
     end
 
@@ -55,15 +54,15 @@ end
 $scope_manager = ScopeManager.new
 
 class StmtListNode
-    attr_accessor :stmt_list, :stmt
-    def initialize (stmt_list, stmt)
+    attr_accessor :stmt_list
+    def initialize(stmt_list)
         @stmt_list = stmt_list
-        @stmt = stmt
     end
     def eval
-        @stmt_list.eval unless @stmt_list.nil?
-        @stmt.eval
-        #puts @stmt_list 
+        #puts @stmt_list.inspect
+        @stmt_list.each do |stmt|
+            stmt.eval
+        end
     end
 end
 
@@ -129,7 +128,7 @@ class NotLogicNode
     end
 end 
 
-#========================================== Values
+#========================================== VALUES
 
 class FactorNode
     attr_accessor :value
@@ -158,7 +157,7 @@ class BoolNode
     end
 end
 
-#========================================== Print and Return
+#========================================== PRINT & RETURN
 
 class PrintNode
     attr_accessor :value
@@ -182,7 +181,7 @@ class ReturnNode
     end
 end
 
-#======================================== Variable
+#========================================== VARIABLES
 class VarNode 
     attr_accessor :identifier
     def initialize(var)
@@ -209,7 +208,7 @@ class DeclareNode
         elsif @type == @expr.eval.class
             $scope_manager.declare_var(@var.identifier, @expr.eval)
         else
-            abort("Abort --> Value is of a different type. 1")
+            abort("Abort --> Value is of a different type.")
         end
     end
 end
@@ -228,12 +227,12 @@ class AssignNode
         elsif scope_man.class == @expr.eval.class 
             $scope_manager.re_assign(@var.identifier, @expr.eval)
         else
-            abort("Abort --> Value is of a different type. 2")
+            abort("Abort --> Value is of a different type.")
         end
     end
 end
 
-#===================================== Iteration & condition
+#===================================== ITERATION & CONDITION
 
 class WhileNode
     attr_accessor :condition, :statement_list
@@ -243,11 +242,13 @@ class WhileNode
     end
 
     def eval
-        $scope_manager.add_scope
         while @condition.eval == true 
-            @statement_list.eval
+            $scope_manager.add_scope
+            @statement_list.each do |statement|
+                statement.eval
+            end
+            $scope_manager.end_scope
         end
-        $scope_manager.end_scope
     end
 end
 
@@ -261,7 +262,9 @@ class IfNode
     def eval
         if @condition.eval == true 
             $scope_manager.add_scope
-            value = @statement_list.eval
+            @statement_list.each do |statement|
+                value = statement.eval
+            end
             $scope_manager.end_scope
             return value
         end
@@ -280,14 +283,17 @@ class ElseNode
         condition_val = @condition.eval 
         if condition_val == true 
             $scope_manager.add_scope
-            value = @statement_list1.eval
+            @statement_list1.each do |statement|
+                statement.eval
+            end
             $scope_manager.end_scope
         else
             $scope_manager.add_scope
-            value = @statement_list2.eval
+            @statement_list2.each do |statement|
+                statement.eval
+            end
             $scope_manager.end_scope
         end
-        return value
     end
 end
 
@@ -298,10 +304,6 @@ class FunctionSaver
     end
     
     def eval(argument_list)
-        # Iterara över parameterlistan och argumentlistan samtidigt 
-        # för att checka ifall objekten stämmer överens
-        # isåfall gör en declare_var
-
         if (argument_list == [] or @parameter_list == []) and (argument_list != [] or @parameter_list != [])
             abort ("Abort --> Either a paramater or an argument is missing!")
         end
@@ -311,11 +313,21 @@ class FunctionSaver
 
         if argument_list == [] and @parameter_list == []
             $scope_manager.add_scope
-            @statement_list.eval
+            @statement_list.each do |statement|
+                if statement.class == ReturnNode
+                    return statement.eval
+                    break
+                    #$scope_manager.end_scope
+                else
+                    statement.eval
+                    #$scope_manager.end_scope
+                end
+            end
+
             $scope_manager.end_scope
         elsif argument_list != [] and @parameter_list != []
             if argument_list_length != paramater_list_length 
-                abort ("Abort --> Number of paramters and arguments dont match!")
+                abort ("Abort --> Number of parameters and arguments dont match!")
             end
             $scope_manager.add_scope
             counter = 0 
@@ -328,9 +340,19 @@ class FunctionSaver
                         abort("Abort --> argument type doesn't match with parameter type!")   
                     end
                 end
-                @statement_list.eval
-                $scope_manager.end_scope
             end
+                
+            @statement_list.each do |statement|
+                if statement.class == ReturnNode
+                    return statement.eval
+                    break
+                    #$scope_manager.end_scope
+                else
+                    statement.eval
+                    #$scope_manager.end_scope
+                end
+            end   
+            $scope_manager.end_scope
         end
     end
 end

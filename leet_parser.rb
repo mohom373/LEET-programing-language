@@ -9,6 +9,7 @@ class Leet
             token(/\s+/) # Ignore whitespaces
             token(/{--(.|\n)*--}/) # Ignore multiline comments
             token(/--.*/) # Ignore single line comments
+            token(/r37urn/) {|x| x} # Match Return
             token(/pr1n7/) {|x| x} # Match print function
             token(/1n7/) {|x| x} # Int type
             token(/fl047/) {|x| x} # Float type 
@@ -37,33 +38,43 @@ class Leet
             token(/./) {|x| x}
 
             start :program do
-                match(:statement_list)
+                match(:statement_list) {|stmt_list| StmtListNode.new(stmt_list)}
             end
-
+=begin
             rule :statement_list do 
                 match(:statement_list, :statement) { |stmt_list, stmt| StmtListNode.new(stmt_list, stmt) }
                 match(:statement) { |stmt| stmt }
             end
+=end
+            
+            rule :statement_list do 
+                match(:statement_list, :statement) {|statement_list, statement| statement_list.concat(statement)}
+                match(:statement) { |stmt| stmt }
+            end
 
             rule :statement do 
-                match(:print_stmt) {|x| x}
-                #match(:return)
-                match(:function_definition) {|x| x}
-                match(:function_call) {|x| x}
-                match(:declare) {|x| x}
-				match(:assign) {|x| x}
-                match(:repetition) {|x| x}
-                match(:condition) {|x| x}
-                match(:expr)  {|x| x}
+                match(:print_stmt) {|x| [x]}
+                match(:return) {|x| [x]}
+                match(:function_definition) {|x| [x]}
+                match(:function_call) {|x| [x]}
+                match(:repetition) {|x| [x]}
+                match(:condition) {|x| [x]}
+                match(:declare) {|x| [x]}
+				match(:assign) {|x| [x]}
+                match(:expr) {|x| [x]}
             end
 
             rule :print_stmt do
-                match('pr1n7', '(', :expr, ')', ';') {|_, _, print_val ,_ ,_|PrintNode.new(print_val)}
+                match('pr1n7', '(', :expr, ')', ';') {|_, _, print_val, _ , _|PrintNode.new(print_val)}
                 
-                match('pr1n7', '(', :assign, ')', ';') {|_, _, print_val ,_ ,_|PrintNode.new(print_val)}
+                #match('pr1n7', '(', :assign, ')', ';') {|_, _, print_val, _, _|PrintNode.new(print_val)}
 
             end
               
+            rule :return do
+                match('r37urn', '(', :expr, ')', ';'){|_, _, return_val, _, _| ReturnNode.new(return_val)}
+            end
+
             rule :function_definition do
                 match('func', :var, '(', :parameter_list,')', '{', :statement_list, '}') { |_, function_name, _, parameter_list, _, _, statement_list, _| FunctionDefNode.new(function_name, parameter_list , statement_list)}
 
@@ -145,8 +156,8 @@ class Leet
             end
                         
             rule :factor do 
-                match('(', :expr, ')') {|_, expr, _| expr}  
                 match(:function_call)
+                match('(', :expr, ')') {|_, expr, _| expr}  
                 match(:float) 
                 match(:integer)
                 match(:string)
@@ -201,8 +212,8 @@ class Leet
 			end
 
             rule :string do
-                match(/"[^\"]*"/) {|string| FactorNode.new(string)}
-                match(/'[^\"]*'/) {|string| FactorNode.new(string)}
+                match(/"[^\"]*"/) {|string| FactorNode.new(string.slice(1, string.length - 2).to_s)}
+                match(/'[^\"]*'/) {|string| FactorNode.new(string.slice(1, string.length - 2).to_s)}
             end
 
             rule :bool do
@@ -238,6 +249,8 @@ end
 
 p = Leet.new
 p.log(false)
-#p.start_with_file("leet.txt")
+#p.start_with_file("leet_test1.txt")
 #p.start_with_file("leet_test2.txt")
-p.start_with_file("leet_test3.txt")
+#p.start_with_file("leet_test3.txt")
+#p.start_with_file("leet_test4.txt")
+#p.start_with_file("leet_test5.txt")
