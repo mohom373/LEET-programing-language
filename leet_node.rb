@@ -62,7 +62,10 @@ class StmtListNode
         @stmt_list.each do |stmt|
             stmt.eval
         end
+        #puts "HEEEEEEEEEEEEEEEEEEEEJ"
+        puts $scope_manager.variables.inspect
     end
+
 end
 
 #========================================== CALCULATIONS
@@ -165,7 +168,7 @@ class PrintNode
     end
 
     def eval
-        puts "#{@value.eval}"
+        print "#{@value.eval}\n"
     end
 end
 
@@ -299,6 +302,8 @@ class ElseNode
     end
 end
 
+#============================== FUNCTIONS
+
 class FunctionSaver
     def initialize(parameter_list, statement_list)
         @parameter_list = parameter_list
@@ -375,5 +380,70 @@ class FunctionCallNode
     def eval
         var = $scope_manager.get_var(@func_name.identifier)
         var.eval(@argument_list)
+    end
+end
+
+
+#========================================== LIST
+
+
+class ListNode 
+    def initialize(list = [])
+        @list = list 
+    end
+
+    def eval 
+        return @list
+    end
+end
+
+=begin
+class ListDeclNode
+    attr_accessor :type, :var, :list
+    def initialize(type, var, list)
+        @type = type
+        @var = var
+        @list = list
+    end
+
+    def eval
+
+        return_val = @list.eval
+        puts @type
+        return_val.each do |item| 
+            puts item.class.inspect
+            if item.class != @type
+                abort("fAILURE")
+            end
+        end
+        $scope_manager.declare_var(@var.identifier, return_val)
+    end
+end
+=end
+
+class ListFunctionsNode
+    def initialize(operator, list,expression = nil, index = 0)
+        @operator = operator
+        @list = list 
+        @expression = expression
+        @index = index
+    end
+
+    def eval 
+        case @operator
+        when '51z3' then
+            return @list.eval.size
+        when '4pp3nd' then
+            #puts @expression.class.
+            if @expression.class == Array
+                return @list.eval.concat(@expression)
+            else 
+                return @list.eval.append(@expression)
+            end 
+        when 'r3m0v3' then 
+            return @list.eval.delete_at(@index)
+        #when '1n53r7' then return @list.eval.size
+        #when 'g37' then return @list.eval.size
+        end
     end
 end

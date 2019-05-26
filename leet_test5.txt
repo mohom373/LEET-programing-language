@@ -1,10 +1,11 @@
-func rec(<1n7> x)
+func rec(<1n7> x, <57r1ng> y)
 {
+    pr1n7(y);
     pr1n7(x);
     1f (x > 0)
     { 
-        rec(x - 1);
+        rec(x - 1, y);
     }
 }
 
-rec(10);
+rec(10, "Hej på dig");

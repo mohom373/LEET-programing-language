@@ -6,9 +6,13 @@ class Leet
     attr_reader :leetparser 
     def initialize 
         @leetparser = Parser.new("L33t lang") do
+
+            #============================== TOKENS
+
             token(/\s+/) # Ignore whitespaces
             token(/{--(.|\n)*--}/) # Ignore multiline comments
             token(/--.*/) # Ignore single line comments
+            token(/l157/) {|x| x} # List container
             token(/r37urn/) {|x| x} # Match Return
             token(/pr1n7/) {|x| x} # Match print function
             token(/1n7/) {|x| x} # Int type
@@ -23,19 +27,28 @@ class Leet
             token(/4nd/) {|x| x} # And operator
             token(/0r/) {|x| x} # Or operator
             token(/wh1l3/) {|x| x} # While loop
+
+            token(/51z3/) {|x| x}
+            token(/4pp3nd/) {|x| x}
+            token(/r3m0v3/) {|x| x}
+
             token(/\d+[.]\d+/) {|x| x.to_f} # Match float
             token(/\d+/) { |x| x.to_i } # Match integer
-            token(/[a-zA-ZåäöÅÄÖ]+/) {|x| x.to_s} # Match chars
+            token(/[a-zA-Z]+/) {|x| x} # Match chars
             token(/"[^\"]*"/) {|x| x.to_s } # Double quote string
             token(/'[^\"]*'/) {|x| x.to_s } # Single quote string
-            token(/func/)
+            token(/func/) {|x| x}
             token(/{/) {|x| x } # Block
             token(/}/) {|x| x } # Block
+            token(/\[/) {|x| x}
+            token(/\]/) {|x| x}
             token(/\=\=/) {|x| x} # Relational operator check
             token(/\!\=/) {|x| x} # Relational operator check
             token(/\>\=/) {|x| x} # Relational operator check
             token(/\<\=/) {|x| x} # Relational operator check
             token(/./) {|x| x}
+
+            #============================== PROGRAM & STMTS
 
             start :program do
                 match(:statement_list) {|stmt_list| StmtListNode.new(stmt_list)}
@@ -55,16 +68,22 @@ class Leet
                 match(:condition) {|x| [x]}
                 match(:declare) {|x| [x]}
 				match(:assign) {|x| [x]}
-                match(:expr) {|x| [x]}
+                match(:expression) {|x| [x]}
             end
 
+            #============================== PRINT
+
             rule :print_stmt do
-                match('pr1n7', '(', :expr, ')', ';') {|_, _, print_val, _ , _|PrintNode.new(print_val)}
+                match('pr1n7', '(', :expression, ')', ';') {|_, _, print_val, _ , _|PrintNode.new(print_val)}
             end
-              
+            
+            #============================== RETURN
+
             rule :return do
-                match('r37urn', '(', :expr, ')', ';'){|_, _, return_val, _, _| ReturnNode.new(return_val)}
+                match('r37urn', '(', :expression, ')', ';'){|_, _, return_val, _, _| ReturnNode.new(return_val)}
             end
+
+            #============================== FUNCTIONS
 
             rule :function_definition do
                 match('func', :var, '(', :parameter_list,')', '{', :statement_list, '}') { |_, function_name, _, parameter_list, _, _, statement_list, _| FunctionDefNode.new(function_name, parameter_list , statement_list)}
@@ -103,64 +122,133 @@ class Leet
             end
 
             rule :argument do 
-                match(:expr) {|expression| [expression]}
+                match(:expression) {|expression| [expression]}
             end
 
-            rule :declare do
-                match('<', :type_name, '>', :var, '=', :expr) {|_,type, _, var, _, expr| DeclareNode.new(type, var, expr)}
-            end
-
-            rule :assign do
-                match(:var, '=', :expr) {|var, _, expr| AssignNode.new(var, expr)}    
-            end
+            #============================== CONTROL STRUCTURES
 
             rule :repetition do 
-                match('wh1l3', '(', :logic, ')', '{', :statement_list,'}'){|_, _, condition, _, _, statement_list, _| WhileNode.new(condition, statement_list)}
+                match('wh1l3', '(', :expression, ')', '{', :statement_list,'}'){|_, _, condition, _, _, statement_list, _| WhileNode.new(condition, statement_list)}
             end 
 
             rule :condition do
-                match('1f', '(', :logic, ')', '{', :statement_list, '}','3l53', 
+                match('1f', '(', :expression, ')', '{', :statement_list, '}','3l53', 
                 '{', :statement_list,'}') {|_, _, condition, _, _, statement_list1, _, _, _, statement_list2, _| ElseNode.new(condition, statement_list1, statement_list2) }
                 
-                match('1f', '(', :logic, ')', '{', :statement_list, '}') {|_, _, condition, _, _, statement_list, _| IfNode.new(condition, statement_list ) }
+                match('1f', '(', :expression, ')', '{', :statement_list, '}') {|_, _, condition, _, _, statement_list, _| IfNode.new(condition, statement_list ) }
             end
 
-			rule :expr do 
-				match(:expr, :arithm_op , :term) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
-				match(:term) 
+            #============================== VARIABLE DECL & ASSIGN
+
+            rule :declare do
+
+                #match('l157', '<', :type_name, '>', :var, '=', :list) {|_, _, type, _, var, _, expression| ListDeclNode.new(type, var, expression)} 
+
+
+                match('<', :type_name, '>', :var, '=', :expression) {|_, type, _, var, _, expression| DeclareNode.new(type, var, expression)}
+
+            end
+
+=begin
+            rule :type_list do 
+                match(:type_list, ',', :type) {|items, _, item| [items] + [item.eval] }
+                match(:type ) {|type| [type.eval]}
+
+            end
+=end
+            rule :assign do
+                match(:var, '=', :expression) {|var, _, expression| AssignNode.new(var, expression)}    
+            end
+
+            #============================== EXPRESSION
+
+            rule :expression do 
+				match(:or_expression)
 			end
 
-			rule :term do 
-				match(:term, :term_op, :logic) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
-				match(:logic)
-			end
+            rule :or_expression do 
+                match(:or_expression, :or_logic_op, :and_expression) {|lhs, op, rhs| LogicNode.new(lhs, op, rhs)}
+                match(:and_expression)
+            end
 
-            rule :logic do
-                match(:logic, :logic_op, :comparison) {|lhs, op, rhs| LogicNode.new(lhs, op, rhs)} 
+            rule :and_expression do 
+                match(:and_expression, :and_logic_op, :not_expression) {|lhs, op, rhs| LogicNode.new(lhs, op, rhs)}
+                match(:not_expression)
+            end
+            
+            rule :not_expression do
                 match(:not_logic_op, :comparison) {|op, rhs| NotLogicNode.new(op, rhs)}
                 match(:comparison)
             end
 
 			rule :comparison do
 				match(:comparison, :comp_op, :factor) {|lhs, op, rhs| CompNode.new(lhs, op, rhs)}
-				match(:factor)
+                match(:arithm)
+            end
+
+            rule :arithm do 
+				match(:arithm, :arithm_op , :term) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
+                match(:term) 
             end
                         
+            rule :term do 
+				match(:term, :term_op, :factor) {|lhs, op, rhs| ArithmNode.new(lhs, op, rhs)}
+				match(:factor)
+			end
+
+            #============================== FACTOR
+
             rule :factor do 
                 match(:function_call)
-                match('(', :expr, ')') {|_, expr, _| expr}  
+                match('(', :expression, ')') {|_, expression, _| expression}  
+                match(:type)
+                match(:list)
+                match(:list_functions)
+                match(:var)
+                
+                #match(:float) 
+                #match(:integer)
+                #match(:string)
+                #match(:bool)
+
+                #=========================List
+            end
+
+            
+            rule :list do 
+                match('[', :argument_list,']') {|_, list, _| ListNode.new(list.flatten)}
+                match('[', ']') {|_, _| ListNode.new([])}
+            end
+
+            rule :list_functions do 
+                match(:list_append)
+                match(:list_remove)
+                match(:list_size)
+            end
+
+            rule :list_append do 
+                match('4pp3nd', '!', '(', :list, ')', '{' , :argument_list, '}') {|operator, _, _, list, _, _, expression, _| ListFunctionsNode.new(operator, list, expression)}
+                
+                match('4pp3nd', '!', '(', :var, ')', '{' , :argument_list, '}') {|operator, _, _, list, _, _, expression, _| ListFunctionsNode.new(operator, list, expression)}
+            end
+
+            rule :list_remove do 
+                match('r3m0v3', '!', '(', :list, ')', '{' , Integer, '}') {|operator, _, _, list, _, _, index, _,| ListFunctionsNode.new(operator, list, nil, index)}
+                
+                match('r3m0v3', '!', '(', :var, ')', '{' , Integer, '}') {|operator, _, _, list, _, _, index, _,| ListFunctionsNode.new(operator, list, nil, index)}
+            end
+
+
+            rule :list_size do 
+                match('51z3', '?', '(', :list, ')', ';') {|operator, _, _, list, _, _| ListFunctionsNode.new(operator, list)}
+                match('51z3', '?', '(', :var, ')', ';') {|operator, _, _, list, _, _| ListFunctionsNode.new(operator, list)}
+            end
+
+            rule :type do 
                 match(:float) 
                 match(:integer)
                 match(:string)
                 match(:bool)
-                match(:var)
-            end
-
-            rule :type_name do
-                match(/fl047/) {Float}
-                match(/1n7/) {Integer}
-                match(/57r1ng/) {String}
-                match(/b00l/) 
             end
 
 			rule :arithm_op do
@@ -173,10 +261,13 @@ class Leet
                 match('/')
                 match('%')
 			end
-            
-            rule :logic_op do
-                match('4nd')
+
+            rule :or_logic_op do
                 match('0r')
+            end
+
+            rule :and_logic_op do
+                match('4nd')
             end
 
             rule :not_logic_op do
@@ -190,7 +281,17 @@ class Leet
 				match('<=')
 				match('==')
 				match('!=')
-			end
+            end
+            
+            #============================== TYPES
+
+            rule :type_name do
+                match(/fl047/) {Float}
+                match(/1n7/) {Integer}
+                match(/57r1ng/) {String}
+                match(/b00l/)
+                match(/l157/) {Array} 
+            end
 
 			rule :float do
                 match('-', Float) {|_, float| FactorNode.new(-float)}
@@ -246,3 +347,4 @@ p.log(false)
 #p.start_with_file("leet_test4.txt")
 #p.start_with_file("leet_test5.txt")
 #p.start_with_file("leet_test6.txt")
+p.start_with_file("leet_test7.txt")
