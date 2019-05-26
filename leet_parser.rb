@@ -1,6 +1,5 @@
 require './debug_fix_rdparse.rb'
 require './leet_node.rb'
-require 'test/unit'
 
 class Leet
     attr_reader :leetparser 
@@ -12,6 +11,8 @@ class Leet
             token(/\s+/) # Ignore whitespaces
             token(/{--(.|\n)*--}/) # Ignore multiline comments
             token(/--.*/) # Ignore single line comments
+
+            #============================== RESERVED WORDS
             token(/l157/) {|x| x} # List container
             token(/r37urn/) {|x| x} # Match Return
             token(/pr1n7/) {|x| x} # Match print function
@@ -28,16 +29,20 @@ class Leet
             token(/0r/) {|x| x} # Or operator
             token(/wh1l3/) {|x| x} # While loop
 
-            token(/51z3/) {|x| x}
-            token(/4pp3nd/) {|x| x}
-            token(/r3m0v3/) {|x| x}
+            #============================== LIST WORDS
+            token(/51z3/) {|x| x} # Size
+            token(/4pp3nd/) {|x| x} # Append
+            token(/r3m0v3/) {|x| x} # Remove
+            token(/1n53r7/) {|x| x} # Insert
+            token(/g37/) {|x| x} # Get
 
+            #============================== OTHER
             token(/\d+[.]\d+/) {|x| x.to_f} # Match float
             token(/\d+/) { |x| x.to_i } # Match integer
             token(/[a-zA-Z]+/) {|x| x} # Match chars
             token(/"[^\"]*"/) {|x| x.to_s } # Double quote string
             token(/'[^\"]*'/) {|x| x.to_s } # Single quote string
-            token(/func/) {|x| x}
+            token(/func/) {|x| x} # Function
             token(/{/) {|x| x } # Block
             token(/}/) {|x| x } # Block
             token(/\[/) {|x| x}
@@ -141,21 +146,9 @@ class Leet
             #============================== VARIABLE DECL & ASSIGN
 
             rule :declare do
-
-                #match('l157', '<', :type_name, '>', :var, '=', :list) {|_, _, type, _, var, _, expression| ListDeclNode.new(type, var, expression)} 
-
-
                 match('<', :type_name, '>', :var, '=', :expression) {|_, type, _, var, _, expression| DeclareNode.new(type, var, expression)}
-
             end
 
-=begin
-            rule :type_list do 
-                match(:type_list, ',', :type) {|items, _, item| [items] + [item.eval] }
-                match(:type ) {|type| [type.eval]}
-
-            end
-=end
             rule :assign do
                 match(:var, '=', :expression) {|var, _, expression| AssignNode.new(var, expression)}    
             end
@@ -205,16 +198,9 @@ class Leet
                 match(:list)
                 match(:list_functions)
                 match(:var)
-                
-                #match(:float) 
-                #match(:integer)
-                #match(:string)
-                #match(:bool)
-
-                #=========================List
             end
 
-            
+            #============================== LIST 
             rule :list do 
                 match('[', :argument_list,']') {|_, list, _| ListNode.new(list.flatten)}
                 match('[', ']') {|_, _| ListNode.new([])}
@@ -224,32 +210,31 @@ class Leet
                 match(:list_append)
                 match(:list_remove)
                 match(:list_size)
+                match(:list_insert)
+                match(:list_get) 
             end
 
             rule :list_append do 
-                match('4pp3nd', '!', '(', :list, ')', '{' , :argument_list, '}') {|operator, _, _, list, _, _, expression, _| ListFunctionsNode.new(operator, list, expression)}
-                
                 match('4pp3nd', '!', '(', :var, ')', '{' , :argument_list, '}') {|operator, _, _, list, _, _, expression, _| ListFunctionsNode.new(operator, list, expression)}
             end
 
             rule :list_remove do 
-                match('r3m0v3', '!', '(', :list, ')', '{' , Integer, '}') {|operator, _, _, list, _, _, index, _,| ListFunctionsNode.new(operator, list, nil, index)}
-                
-                match('r3m0v3', '!', '(', :var, ')', '{' , Integer, '}') {|operator, _, _, list, _, _, index, _,| ListFunctionsNode.new(operator, list, nil, index)}
+                match('r3m0v3', '!', '(', :var, ')', '(' , Integer, ')', ';') {|operator, _, _, list, _, _, index, _, _| ListFunctionsNode.new(operator, list, nil, index)}
             end
 
-
             rule :list_size do 
-                match('51z3', '?', '(', :list, ')', ';') {|operator, _, _, list, _, _| ListFunctionsNode.new(operator, list)}
                 match('51z3', '?', '(', :var, ')', ';') {|operator, _, _, list, _, _| ListFunctionsNode.new(operator, list)}
             end
 
-            rule :type do 
-                match(:float) 
-                match(:integer)
-                match(:string)
-                match(:bool)
+            rule :list_insert do 
+                match('1n53r7', '!', '(', :var, ')', '(', Integer, ')', '{', :expression, '}') {|operator, _, _, list, _, _, index, _, _, expression, _| ListFunctionsNode.new(operator, list, expression, index)}
             end
+
+            rule :list_get do  
+                match('g37', '!', '(', :var, ')', '(' , Integer, ')', ';') {|operator, _, _, list, _, _, index, _, _| ListFunctionsNode.new(operator, list, nil, index)}
+            end
+
+            #============================== OPERATORS
 
 			rule :arithm_op do
 				match('+')
@@ -284,6 +269,13 @@ class Leet
             end
             
             #============================== TYPES
+
+            rule :type do 
+                match(:float) 
+                match(:integer)
+                match(:string)
+                match(:bool)
+            end
 
             rule :type_name do
                 match(/fl047/) {Float}
@@ -341,10 +333,10 @@ end
 
 p = Leet.new
 p.log(false)
-#p.start_with_file("leet_test1.txt")
-#p.start_with_file("leet_test2.txt")
-#p.start_with_file("leet_test3.txt")
-#p.start_with_file("leet_test4.txt")
-#p.start_with_file("leet_test5.txt")
-#p.start_with_file("leet_test6.txt")
-p.start_with_file("leet_test7.txt")
+#p.start_with_file("kontroll_struktur.txt")
+#p.start_with_file("func_med_param.txt")
+#p.start_with_file("func_med_kontroll_struktur.txt")
+#p.start_with_file("func_anrop_inuti_func.txt")
+#p.start_with_file("func_recursion.txt")
+#p.start_with_file("func_return.txt")
+#p.start_with_file("list_test.txt")
