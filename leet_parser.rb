@@ -315,11 +315,15 @@ class Leet
         ["quit","exit","bye",""].include?(str.chomp)
     end
 
-    def start_with_file(file)
-    	result = Array.new()
-    	file = File.read(file)
-      	result = @leetparser.parse(file)
-      	result.eval
+    def parse_file()
+        if (ARGV.length() != 1)  
+            puts "Error: No arguments given"
+            puts "Usage: ruby leet_parser.rb FILE_TO_PARSE"
+        else 
+            file = File.read(ARGV[0])
+            result = @leetparser.parse(file)
+            result.eval
+        end
     end
 
     def log(state = true)
@@ -333,10 +337,4 @@ end
 
 p = Leet.new
 p.log(false)
-#p.start_with_file("kontroll_struktur.txt")
-#p.start_with_file("func_med_param.txt")
-#p.start_with_file("func_med_kontroll_struktur.txt")
-#p.start_with_file("func_anrop_inuti_func.txt")
-#p.start_with_file("func_recursion.txt")
-#p.start_with_file("func_return.txt")
-#p.start_with_file("list_test.txt")
+p.parse_file()
